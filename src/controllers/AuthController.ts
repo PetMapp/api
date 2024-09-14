@@ -10,7 +10,7 @@ var fireservice = new FirebaseService();
 Router.get("/users", async (req, res) => {
 
     var list = await fireservice.list<user>("users");
-
+ 
     res.send(list);
 })
 
