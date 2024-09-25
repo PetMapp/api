@@ -17,6 +17,10 @@ class FirebaseService {
 
         return list;
     }
+
+    async register<T extends fbEntity>(collectionPath: string, newItem: Omit<T, 'id'>){
+        await db.collection(collectionPath).add(newItem);
+    }
 }
 
 export default FirebaseService;
