@@ -1,12 +1,8 @@
 import express from 'express';
 import AuthenticationController from './controllers/AuthController';
 import PetController from './controllers/PetController';
-import { admin } from '../firebase';
 import swaggerUi from 'swagger-ui-express';
 import swaggerFile from './../config/swagger-output.json';
-import path from 'path';
-import fs from 'fs';
-import { addSwaggerTag } from './middleware/tagMiddleware';
 
 const app = express();
 const port = 3000;
@@ -14,19 +10,16 @@ const port = 3000;
 // Middleware para JSON
 app.use(express.json());
 
-
-
 app.use('/auth', AuthenticationController
   /*#swagger.tags = ["Auth"]*/
-  /*#swagger.description = "asdasd" */
+  /*#swagger.description = "" */
 );
 
 
 app.use('/pet', PetController
   /*#swagger.tags = ["Pet"]*/
+  /*#swagger.description = "Endpoints de pets" */
 );
-
-
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
 app.listen(port, () => {

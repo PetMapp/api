@@ -9,8 +9,8 @@
   "basePath": "/",
   "tags": [
     {
-      "name": "Auth",
-      "description": "asdasd"
+      "name": "Pet",
+      "description": "Endpoints de pets"
     }
   ],
   "schemes": [
@@ -30,7 +30,7 @@
         "tags": [
           "Auth"
         ],
-        "description": "asdasd",
+        "description": "",
         "responses": {
           "200": {
             "description": "OK"
@@ -43,8 +43,8 @@
         "tags": [
           "Pet"
         ],
-        "summary": "Some summary...",
-        "description": "",
+        "summary": "Lista de todos os pets",
+        "description": "Endpoints de pets",
         "responses": {
           "200": {
             "description": "OK"
@@ -57,7 +57,7 @@
         "tags": [
           "Pet"
         ],
-        "description": "",
+        "description": "Endpoints de pets",
         "parameters": [
           {
             "name": "body",

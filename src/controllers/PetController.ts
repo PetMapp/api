@@ -3,13 +3,12 @@ import FirebaseService from "../services/FirebaseService";
 import pet from "../models/pet";
 import RegisterFindPetDTO_Req from "../DTOs/request/RegisterFindPetDTO_Req";
 import authorize from "../middleware/authorize";
-import swaggerUi from "swagger-ui-express";
 const router = express.Router();
 
 var fireservice = new FirebaseService();
 
 router.get("/list", async (req, res) => {
-        // #swagger.summary = 'Some summary...'
+    /*#swagger.summary = "Lista de todos os pets" */
     var pets = await fireservice.list<pet>("pets");
     return res.send(pets);
 })
