@@ -3,17 +3,18 @@ import FirebaseService from "../services/FirebaseService";
 import pet from "../models/pet";
 import RegisterFindPetDTO_Req from "../DTOs/request/RegisterFindPetDTO_Req";
 import authorize from "../middleware/authorize";
-
-const Router = express.Router();
+import swaggerUi from "swagger-ui-express";
+const router = express.Router();
 
 var fireservice = new FirebaseService();
 
-Router.get("/List", async (req, res) => {
+router.get("/list", async (req, res) => {
+        // #swagger.summary = 'Some summary...'
     var pets = await fireservice.list<pet>("pets");
     return res.send(pets);
 })
 
-Router.post("/Find/Register", authorize, async (req, res) => {
+router.post("/find/register", authorize, async (req, res) => {
     const data = req.body as RegisterFindPetDTO_Req;
 
     await fireservice.register<pet>("pets", {
@@ -27,6 +28,5 @@ Router.post("/Find/Register", authorize, async (req, res) => {
     return res.send(req.user).status(200);
 })
 
-
-const PetController = Router;
+const PetController = router;
 export default PetController;
