@@ -7,12 +7,6 @@
   },
   "host": "localhost:3000",
   "basePath": "/",
-  "tags": [
-    {
-      "name": "Pet",
-      "description": "Endpoints de pets"
-    }
-  ],
   "schemes": [
     "http"
   ],
@@ -38,13 +32,13 @@
         }
       }
     },
-    "/pet/list": {
+    "/pet/location/all": {
       "get": {
         "tags": [
           "Pet"
         ],
-        "summary": "Lista de todos os pets",
-        "description": "Endpoints de pets",
+        "summary": "Lista todas as localizações dos pets",
+        "description": "",
         "responses": {
           "200": {
             "description": "OK"
@@ -57,7 +51,7 @@
         "tags": [
           "Pet"
         ],
-        "description": "Endpoints de pets",
+        "description": "",
         "parameters": [
           {
             "name": "body",
@@ -78,6 +72,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
           }
         }
       }

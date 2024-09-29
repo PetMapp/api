@@ -1,5 +1,5 @@
 import { db } from '../../firebase';
-import fbEntity from '../models/fbEntity';
+import fbEntity from '../models/entities/fbEntity';
 
 
 class FirebaseService {
@@ -18,8 +18,13 @@ class FirebaseService {
         return list;
     }
 
-    async register<T extends fbEntity>(collectionPath: string, newItem: Omit<T, 'id'>){
-        await db.collection(collectionPath).add(newItem);
+    async register<T extends fbEntity>(collectionPath: string, newItem: Omit<T, 'id'>): Promise<T> {
+        const  docRef = await db.collection(collectionPath).add(newItem);
+        const doc = await docRef.get();
+        return {
+            id: doc.id,
+            ...doc.data()
+        } as T
     }
 }
 

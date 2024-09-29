@@ -1,6 +1,6 @@
 import express from "express";
 import FirebaseService from "../services/FirebaseService";
-import user from "../models/user";
+import user from "../models/entities/user";
 const Router = express.Router();
 
 var fireservice = new FirebaseService();

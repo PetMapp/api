@@ -1,5 +1,5 @@
-import swaggerAutogen from 'swagger-autogen';
-import fs from 'fs';
+const swaggerAutogen = require("swagger-autogen")
+const fs = require("fs");
 
 const doc = {
   info: {
@@ -59,8 +59,19 @@ generateTags();
 const outputFile = './swagger-output.json';
 const endpointsFiles = ['./src/index.ts']; // Caminho para o diretório de rotas
 
+// Função que gera o Swagger e retorna uma promessa
+const generateSwagger = () => {
+  generateTags();
+  const outputFile = './config/swagger-output.json';
+  const endpointsFiles = ['./src/index.ts'];
 
-console.log(JSON.stringify(doc));
+  return swaggerAutogen(outputFile, endpointsFiles, doc);
+};
 
-// Gera o Swagger com a configuração dinâmica
-swaggerAutogen(outputFile, endpointsFiles, doc);
+// // Gera o Swagger com a configuração dinâmica e encerra o processo
+// swaggerAutogen(outputFile, endpointsFiles, doc).then(() => {
+//   console.log("Swagger gerado com sucesso!");
+//   process.exit(0); // Encerra o processo corretamente após gerar o arquivo
+// });
+
+export default generateSwagger;
