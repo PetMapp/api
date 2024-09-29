@@ -17,7 +17,11 @@ router.post("/create", authorize, async (req,res) => {
         coleira: data.coleira
     });
 
-    return res.status(200).send(newPost);
+    return res.Ok({
+        success: true,
+        data: newPost,
+        errorMessage: null
+    });
 })
 
 const PostController = router;

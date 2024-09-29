@@ -12,9 +12,27 @@ var googleService = new GoogleService();
 
 router.get("/location/all", authorize, async (req, res) => {
     /*#swagger.summary = "Lista todas as localizações dos pets" */
+    /*#swagger.responses[200] = {
+        description: 'Lista de pets no mapa!',
+        schema: {
+            success: true,
+            errorMessage: "",
+            data: [
+                    {
+                        lat: -42.23099433,
+                        lng: -8.234699818,
+                        petId: "Elsndsdasosd8w"
+                    }
+            ]
+        }
+    } */
 
     var list: petLocation[] = await fireservice.list<petLocation>("petLocations");
-    return res.send(list);
+    return res.Ok({
+        success: true,
+        errorMessage: null,
+        data: list
+    })
 })
 
 router.post("/find/register", authorize, async (req, res) => {
@@ -37,7 +55,7 @@ router.post("/find/register", authorize, async (req, res) => {
         petId: newPet.id
     })
 
-    return res.send(req.user).status(200);
+    return res.Ok();
 })
 
 const PetController = router;

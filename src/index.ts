@@ -5,12 +5,14 @@ import PostController from './controllers/PostController';
 import swaggerUi from 'swagger-ui-express';
 import swaggerFile from './../config/swagger-output.json';
 import generateSwagger from '../config/swagger.config';
+import { responseMiddleware } from './middleware/responseMiddleware';
 
 const app = express();
 const port = 3000;
 
 // Middleware para JSON
 app.use(express.json());
+app.use(responseMiddleware);
 
 var appHandle  = express.Router();
 
@@ -22,7 +24,9 @@ appHandle.use('/pet', PetController
   /*#swagger.tags = ["Pet"]*/
 );
 
-app.use('/post', PostController)
+appHandle.use('/post', PostController
+  /*#swagger.tags = ["Post"]*/
+)
 
 
 app.use("/api", appHandle);
