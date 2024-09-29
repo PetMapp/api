@@ -3,8 +3,8 @@ const fs = require("fs");
 
 const doc = {
   info: {
-    title: 'API Documentation',
-    description: 'Documentação da API gerada automaticamente',
+    title: 'Documentação API PetMap',
+    description: 'Esta documentação serve como guia para desenvolvedores entenderem como utilizar e integrar a API PetMap de forma eficiente, detalhando endpoints, parâmetros e métodos de autenticação.',
   },
   host: 'localhost:3000',
   schemes: ['http'],

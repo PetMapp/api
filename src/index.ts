@@ -12,17 +12,20 @@ const port = 3000;
 // Middleware para JSON
 app.use(express.json());
 
-app.use('/auth', AuthenticationController
+var appHandle  = express.Router();
+
+appHandle.use('/auth', AuthenticationController
   /*#swagger.tags = ["Auth"]*/
 );
 
-
-app.use('/pet', PetController
+appHandle.use('/pet', PetController
   /*#swagger.tags = ["Pet"]*/
 );
 
 app.use('/post', PostController)
 
+
+app.use("/api", appHandle);
 generateSwagger().then(() => {
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
   app.listen(port, () => {
