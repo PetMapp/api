@@ -5,7 +5,7 @@ import PostController from './controllers/PostController';
 import swaggerUi from 'swagger-ui-express';
 import swaggerFile from './../config/swagger-output.json';
 import generateSwagger from '../config/swagger.config';
-import { responseMiddleware } from './middleware/responseMiddleware';
+import { badRequestMiddleware, responseMiddleware } from './middleware/responseMiddleware';
 
 const app = express();
 const port = 3000;
@@ -13,6 +13,7 @@ const port = 3000;
 // Middleware para JSON
 app.use(express.json());
 app.use(responseMiddleware);
+app.use(badRequestMiddleware);
 
 var appHandle  = express.Router();
 

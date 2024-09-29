@@ -5,7 +5,10 @@
       "strict": true,
       "esModuleInterop": true,
       "skipLibCheck": true,
+      "noImplicitAny": true,
+      "strictNullChecks": true,
       "resolveJsonModule": true,
+      "strictPropertyInitialization": true,
       "forceConsistentCasingInFileNames": true,
       "outDir": "./dist",
       "typeRoots": ["./src/types", "./node_modules/@types"] // Inclui o caminho para os tipos personalizados

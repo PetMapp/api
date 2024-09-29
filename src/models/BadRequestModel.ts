@@ -1,5 +1,5 @@
 export default interface BadRequestModel {
     success: false,
-    errorMessage: null,
+    errorMessage: string | null,
     data: any
 }

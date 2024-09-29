@@ -28,6 +28,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
           }
         }
       }
@@ -78,6 +81,79 @@
                 "name": "main"
               }
             }
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/api/pet/find/update": {
+      "put": {
+        "tags": [
+          "Pet"
+        ],
+        "summary": "Alterar informações/localização do Pet.",
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "petId": {
+                  "example": "any"
+                },
+                "localicacao": {
+                  "example": "any"
+                },
+                "descricao": {
+                  "example": "any"
+                },
+                "status": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/api/pet/find/remove": {
+      "delete": {
+        "tags": [
+          "Pet"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "petId": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
           }
         }
       }
@@ -87,6 +163,7 @@
         "tags": [
           "Pet"
         ],
+        "summary": "Endpoint de registro de um novo pet e registrar no mapa.",
         "description": "",
         "parameters": [
           {
@@ -100,9 +177,39 @@
                 },
                 "apelido": {
                   "example": "any"
+                },
+                "descricao": {
+                  "example": "any"
+                },
+                "status": {
+                  "example": "any"
                 }
               }
             }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/api/pet/find/get/{id}": {
+      "get": {
+        "tags": [
+          "Pet"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
           }
         ],
         "responses": {
@@ -144,6 +251,9 @@
         "responses": {
           "200": {
             "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
           }
         }
       }
