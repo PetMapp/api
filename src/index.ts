@@ -1,6 +1,7 @@
 import express from 'express';
 import AuthenticationController from './controllers/AuthController';
 import PetController from './controllers/PetController';
+import PostController from './controllers/PostController';
 import swaggerUi from 'swagger-ui-express';
 import swaggerFile from './../config/swagger-output.json';
 import generateSwagger from '../config/swagger.config';
@@ -19,6 +20,8 @@ app.use('/auth', AuthenticationController
 app.use('/pet', PetController
   /*#swagger.tags = ["Pet"]*/
 );
+
+app.use('/post', PostController)
 
 generateSwagger().then(() => {
   app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
