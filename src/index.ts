@@ -6,12 +6,13 @@ import swaggerUi from 'swagger-ui-express';
 import swaggerFile from './../config/swagger-output.json';
 import generateSwagger from '../config/swagger.config';
 import { badRequestMiddleware, responseMiddleware } from './middleware/responseMiddleware';
-
+import cors from 'cors';
 const app = express();
 const port = 3000;
 
 // Middleware para JSON
 app.use(express.json());
+app.use(cors());
 app.use(responseMiddleware);
 app.use(badRequestMiddleware);
 
