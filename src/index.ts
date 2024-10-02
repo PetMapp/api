@@ -7,6 +7,7 @@ import swaggerFile from './../config/swagger-output.json';
 import generateSwagger from '../config/swagger.config';
 import { badRequestMiddleware, responseMiddleware } from './middleware/responseMiddleware';
 import cors from 'cors';
+import { https } from 'firebase-functions/v2';
 const app = express();
 const port = 3000;
 
@@ -38,3 +39,5 @@ generateSwagger().then(() => {
     console.log(`Servidor rodando na porta ${port}. Documentação disponível em http://localhost:3000/docs`);
   });
 })
+
+exports.api = https.onRequest(app);
