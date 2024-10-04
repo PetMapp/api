@@ -1,20 +1,22 @@
 {
     "compilerOptions": {
       "target": "es6",
-      "module": "commonjs",
+      "module": "ESNext",
       "strict": true,
       "rootDir": ".",
       "esModuleInterop": true,
       "skipLibCheck": true,
       "noImplicitAny": true,
+      "moduleResolution": "node", 
       "strictNullChecks": true,
       "resolveJsonModule": true,
       "strictPropertyInitialization": true,
       "forceConsistentCasingInFileNames": true,
+      "allowSyntheticDefaultImports": true,
       "outDir": "lib",
       "typeRoots": ["./src/types", "./node_modules/@types"] // Inclui o caminho para os tipos personalizados
     },
     "include": ["src/**/*.ts", "config/**/*.ts"],
-    "exclude": ["node_modules"]
+    "exclude": ["node_modules", "**/*.test.ts"]
   }
   

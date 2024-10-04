@@ -2,7 +2,8 @@
   "name": "api",
   "version": "1.0.0",
   "description": "",
-  "main": "lib/index.js",
+  "type": "module",
+  "main": "lib/src/index.js",
   "scripts": {
     "start": "nodemon --watch src --watch config --ignore config/swagger-output.json --ext ts --exec \"ts-node src/index.ts\"",
     "build": "tsc",
