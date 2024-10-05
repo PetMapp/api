@@ -1,6 +1,6 @@
 import { Request, Response } from 'express';
 import ResponseModel from '../models/ResponseModel';
-import { admin } from '../../firebase';
+import { admin } from '../firebase';
 import BadRequestModel from '../models/BadRequestModel';
 declare global {
   namespace Express {

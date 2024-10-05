@@ -1,4 +1,4 @@
-import { db } from '../../firebase';
+import { db } from '../firebase';
 import fbEntity from '../models/entities/fbEntity';
 
 // Definição da interface QueryCriteria com a sintaxe correta

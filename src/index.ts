@@ -8,6 +8,11 @@ import generateSwagger from '../config/swagger.config';
 import { badRequestMiddleware, responseMiddleware } from './middleware/responseMiddleware';
 import cors from 'cors';
 import { https } from 'firebase-functions/v2';
+import './firebase'; // Importa e inicializa o Firebase antes de qualquer outra coisa.
+import started from './firebase';
+started();
+
+
 const app = express();
 const port = 3000;
 
@@ -16,6 +21,8 @@ app.use(express.json());
 app.use(cors());
 app.use(responseMiddleware);
 app.use(badRequestMiddleware);
+
+
 
 var appHandle  = express.Router();
 
