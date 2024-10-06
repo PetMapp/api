@@ -29,7 +29,6 @@ router.get("/location/all", authorize, async (req, res) => {
             ]
         }
     } */
-
     var list: petLocation[] = await fireservice.list<petLocation>("petLocations");
     return res.Ok({
         success: true,

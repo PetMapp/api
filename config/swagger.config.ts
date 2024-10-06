@@ -18,11 +18,7 @@ const doc = {
       description: 'Insira o token no formato: Bearer {token}',
     },
   },
-  security: [
-    {
-      BearerAuth: [], // Define a necessidade do Bearer Token como padrão
-    },
-  ],
+  security: [],
 };
 
 const mainFilePath = './src/index.ts'; // Arquivo principal onde os app.use estão definidos
@@ -37,7 +33,7 @@ const generateTags = () => {
 
   let match;
   while ((match = regex.exec(mainFileContent)) !== null) {
-    const [, controllerName, rawTags, description] = match;
+    const [controllerName, rawTags, description] = match;
 
     // Converte as tags encontradas no comentário para um array (ex: ["Auth"])
     const tags = rawTags.split(',').map(tag => tag.trim().replace(/"/g, ''));
@@ -55,9 +51,6 @@ const generateTags = () => {
 };
 
 generateTags();
-
-const outputFile = './swagger-output.json';
-const endpointsFiles = ['./src/index.ts']; // Caminho para o diretório de rotas
 
 // Função que gera o Swagger e retorna uma promessa
 const generateSwagger = () => {
