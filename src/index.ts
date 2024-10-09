@@ -23,7 +23,6 @@ app.use(responseMiddleware);
 app.use(badRequestMiddleware);
 
 
-
 var appHandle  = express.Router();
 
 appHandle.use('/auth', AuthenticationController

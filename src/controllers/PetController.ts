@@ -9,9 +9,33 @@ import PetFindEditDTO_Req from "../DTOs/request/PetFindEditDTO_Req";
 import PetFindDeleteDTO_Res from "../DTOs/request/PetFindDeleteDTO_Res";
 import DetailFindPetDTO_Res from "../DTOs/response/DetailFindPetDTO_Res";
 const router = express.Router();
+import multer from 'multer';
+import { admin } from "../firebase";
 
 var fireservice = new FirebaseService();
 var googleService = new GoogleService();
+
+var storage = multer.memoryStorage();
+var upload = multer({ storage });
+
+// router.get("/getIamge", async (req, res) => {
+//     var bucket = admin.storage().bucket();
+
+//     var file = bucket.file("bg.png");
+
+//     var image = await file.getSignedUrl({
+//         expires: Date.now() + 60 * 60 * 1000,
+//         action: "read",
+//         version: "v4"
+//     });
+
+//     return res.Ok({
+//         data: image,
+//         errorMessage: null,
+//         success: true
+//     })
+
+// })
 
 router.get("/location/all", authorize, async (req, res) => {
     /*#swagger.summary = "Lista todas as localizações dos pets" */
@@ -36,6 +60,44 @@ router.get("/location/all", authorize, async (req, res) => {
         data: list
     })
 })
+
+
+// router.post("/find/uploadImage", upload.single("image"), async (req, res) => {
+//     const f = req.file;
+//     var ee = req.body;
+//     if (!f){
+//         return res.BadRequest({
+//             data: null,
+//             errorMessage: "Nenhum arquivo encontrado",
+//             success: false
+//         })  
+//     }  else {
+
+
+//         const bk = admin.storage().bucket();
+
+//         const filess =  bk.file(f.originalname);
+//         await filess.save(f.buffer, {
+//             metadata: {
+//                 contentType: req.file?.mimetype
+//             }
+//         })
+
+
+
+//         var e = await bk.getSignedUrl({
+//             expires: Date.now() + 60 * 60 * 1000,
+//             action: "list",
+//             version: "v4"
+//         })
+
+//         res.Ok({
+//             data: e[0],
+//             errorMessage: null,
+//             success: true
+//         })
+//     }
+// });
 
 router.put("/find/update", authorize, async (req, res) => {
     /*#swagger.summary = "Alterar informações/localização do Pet." */
@@ -129,30 +191,59 @@ router.delete("/find/remove", authorize, async (req, res) => {
     })
 })
 
-router.post("/find/register", authorize, async (req, res) => {
+router.post("/find/register", authorize, upload.single("img"), async (req, res) => {
     /**#swagger.summary = "Endpoint de registro de um novo pet e registrar no mapa." */
     const data = req.body as RegisterFindPetDTO_Req;
 
-    var location = await googleService.Geocode.GetByAddress(data.localizacao);
-    if (location == null)
-        return res.status(400).send("Localização (lat,lng) não foi encontrada.");
+    try {
+
+        var file = req.file;
+        if (!file) return res.BadRequest({
+            data: null,
+            errorMessage: "É necessário inserir a imagem do pet",
+            success: false
+        })
+
+        var location = await googleService.Geocode.GetByAddress(data.localizacao);
+        if (location == null)
+            return res.status(400).send("Localização (lat,lng) não foi encontrada.");
+
+        const newPet = await fireservice.register<pet>("pets", {
+            userId: req.user?.uid!,
+            apelido: data.apelido,
+            localizacao: data.localizacao,
+            descricao: data.descricao,
+            status: data.status
+        });
+
+        await fireservice.register<petLocation>("petLocations", {
+            lat: location.results[0].geometry.location.lat,
+            lng: location.results[0].geometry.location.lng,
+            petId: newPet.id
+        })
 
 
-    const newPet = await fireservice.register<pet>("pets", {
-        userId: req.user?.uid!,
-        apelido: data.apelido,
-        localizacao: data.localizacao,
-        descricao: data.descricao,
-        status: data.status
-    });
+        //Salvar imagem
+        const bk = admin.storage().bucket();
+        var fileName = `imagens/${newPet.id}/${file.originalname}`;
+        const filess = bk.file(fileName);
+        await filess.save(file.buffer, {
+            metadata: {
+                contentType: req.file?.mimetype
+            }
+        })
+        //
 
-    await fireservice.register<petLocation>("petLocations", {
-        lat: location.results[0].geometry.location.lat,
-        lng: location.results[0].geometry.location.lng,
-        petId: newPet.id
-    })
-
-    return res.Ok();
+        return res.Ok();
+    } catch (error) {
+        var errorString = error as string;
+        return res.BadRequest({
+            data: null,
+            errorMessage: errorString,
+            status: 500,
+            success: false
+        })
+    }
 })
 
 
@@ -169,10 +260,10 @@ router.get("/find/get/:id", authorize, async (req, res) => {
     })
 
     var petLocation = await fireservice.find<petLocation>("petLocations", {
-        petId: {operator: "==", value: pet.id}
+        petId: { operator: "==", value: pet.id }
     });
 
-    if(!petLocation) return res.BadRequest({
+    if (!petLocation) return res.BadRequest({
         data: null,
         errorMessage: "Localização do pet não encontrada.",
         success: false

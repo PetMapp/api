@@ -9,6 +9,7 @@ export const started = () => {
   if (!admin.apps.length) {
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount as admin.ServiceAccount),
+      storageBucket: "petmap-6d5f7.appspot.com"
     });
     console.log("Firebase inicializado com sucesso.");
   }

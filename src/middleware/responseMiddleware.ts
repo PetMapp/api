@@ -12,7 +12,7 @@ export const responseMiddleware = (req: Request, res: Response, next: NextFuncti
 
 export const badRequestMiddleware = (req: Request, res: Response, next: NextFunction) => {
     res.BadRequest = (response: BadRequestModel) => {
-      res.status(400).json(response);
+      res.status(response.status ?? 400).json(response);
     };
   
     next();
