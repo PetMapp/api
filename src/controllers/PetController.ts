@@ -11,6 +11,7 @@ import DetailFindPetDTO_Res from "../DTOs/response/DetailFindPetDTO_Res";
 const router = express.Router();
 import multer from 'multer';
 import { admin } from "../firebase";
+import petLocationDTO_Res from "../DTOs/response/PetLocationDTO_Res";
 
 var fireservice = new FirebaseService();
 var googleService = new GoogleService();
@@ -54,10 +55,31 @@ router.get("/location/all", authorize, async (req, res) => {
         }
     } */
     var list: petLocation[] = await fireservice.list<petLocation>("petLocations");
+
+    var locate: petLocationDTO_Res[] = [];
+    var bucket = admin.storage().bucket();
+
+    list.forEach(async (i) => {
+
+        var file = bucket.file(`imagens/${i.petId}/thumb`);
+        var image = await file.getSignedUrl({
+            expires: Date.now() + 60 * 60 * 1000,
+            action: "read",
+            version: "v4"
+        });
+
+        locate.push({
+            lat: i.lat,
+            lng: i.lng,
+            petId: i.petId,
+            petImage: image[0]
+        })
+    })
+
     return res.Ok({
         success: true,
         errorMessage: null,
-        data: list
+        data: locate
     })
 })
 
