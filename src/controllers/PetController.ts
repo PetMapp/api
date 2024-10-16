@@ -55,12 +55,27 @@ router.get("/location/all", authorize, async (req, res) => {
         }
     } */
     var list: petLocation[] = await fireservice.list<petLocation>("petLocations");
-
-    var locate: petLocationDTO_Res[] = [];
+    // var locate: petLocationDTO_Res[] = [];
     var bucket = admin.storage().bucket();
 
-    list.forEach(async (i) => {
+    // list.forEach(async (i) => {
 
+    //     var file = bucket.file(`imagens/${i.petId}/thumb`);
+    //     var image = await file.getSignedUrl({
+    //         expires: Date.now() + 60 * 60 * 1000,
+    //         action: "read",
+    //         version: "v4"
+    //     });
+
+    //     locate.push({
+    //         lat: i.lat,
+    //         lng: i.lng,
+    //         petId: i.petId,
+    //         petImage: image[0] ?? ""
+    //     })
+    // })
+
+    const locatePromises  = list.map(async (i) => {
         var file = bucket.file(`imagens/${i.petId}/thumb`);
         var image = await file.getSignedUrl({
             expires: Date.now() + 60 * 60 * 1000,
@@ -68,14 +83,17 @@ router.get("/location/all", authorize, async (req, res) => {
             version: "v4"
         });
 
-        locate.push({
+        return {
             lat: i.lat,
             lng: i.lng,
             petId: i.petId,
-            petImage: image[0]
-        })
+            petImage: image[0] ?? ""
+        };
     })
 
+    var locate: petLocationDTO_Res[] = await Promise.all(locatePromises);
+
+    console.log();
     return res.Ok({
         success: true,
         errorMessage: null,
