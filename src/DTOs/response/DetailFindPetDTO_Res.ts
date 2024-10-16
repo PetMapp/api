@@ -5,4 +5,5 @@ export default interface DetailFindPetDTO_Res {
     lat: number
     lng: number
     userId: string
+    petImage: string
 }

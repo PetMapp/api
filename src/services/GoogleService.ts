@@ -8,15 +8,25 @@ class GoogleService {
     public Geocode = {
         GetByAddress: async (address: string): Promise<GoogleGeocodeResponse | null> => {
             try {
-                var location: GoogleGeocodeResponse = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?key=${this.apiKey}&address=${address}`)
-                    .then(d => d.json())
+                const response: GoogleGeocodeResponse = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?key=${this.apiKey}&address=${address}`)
+                    .then(d => d.json());
 
-                return location;
+                return response;
+            } catch (error) {
+                return null;
+            }
+        },
+
+        GetByLatLng: async (lat: number, lng: number): Promise<GoogleGeocodeResponse | null> => {
+            try {
+                const response: GoogleGeocodeResponse = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?key=${this.apiKey}&latlng=${lat},${lng}`)
+                    .then(d => d.json());
+
+                return response;
             } catch (error) {
                 return null;
             }
         }
-
     }
 }
 

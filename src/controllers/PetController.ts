@@ -12,6 +12,7 @@ const router = express.Router();
 import multer from 'multer';
 import { admin } from "../firebase";
 import petLocationDTO_Res from "../DTOs/response/PetLocationDTO_Res";
+import LocateByLatLngDTO_Req from "../DTOs/request/LocateByLatLngDTO_Req";
 
 var fireservice = new FirebaseService();
 var googleService = new GoogleService();
@@ -58,24 +59,7 @@ router.get("/location/all", authorize, async (req, res) => {
     // var locate: petLocationDTO_Res[] = [];
     var bucket = admin.storage().bucket();
 
-    // list.forEach(async (i) => {
-
-    //     var file = bucket.file(`imagens/${i.petId}/thumb`);
-    //     var image = await file.getSignedUrl({
-    //         expires: Date.now() + 60 * 60 * 1000,
-    //         action: "read",
-    //         version: "v4"
-    //     });
-
-    //     locate.push({
-    //         lat: i.lat,
-    //         lng: i.lng,
-    //         petId: i.petId,
-    //         petImage: image[0] ?? ""
-    //     })
-    // })
-
-    const locatePromises  = list.map(async (i) => {
+    const locatePromises = list.map(async (i) => {
         var file = bucket.file(`imagens/${i.petId}/thumb`);
         var image = await file.getSignedUrl({
             expires: Date.now() + 60 * 60 * 1000,
@@ -287,9 +271,22 @@ router.post("/find/register", authorize, upload.single("img"), async (req, res) 
 })
 
 
+router.post("/locateByLatLng", authorize, async (req, res) => {
+    const data = req.body as LocateByLatLngDTO_Req;
+    
+    var locate = await googleService.Geocode.GetByLatLng(data.lat, data.lng);
+
+    return res.Ok({
+        data: locate?.results[0].formatted_address,
+        errorMessage: null,
+        success: true
+    })
+
+})
+
+
 router.get("/find/get/:id", authorize, async (req, res) => {
     const { id } = req.params;
-    const user = req.user;
 
     var pet = await fireservice.get<pet>("pets", id);
 
@@ -309,6 +306,14 @@ router.get("/find/get/:id", authorize, async (req, res) => {
         success: false
     })
 
+    var bucket = admin.storage().bucket();
+    var file = bucket.file(`imagens/${pet.id}/thumb`);
+    var image = await file.getSignedUrl({
+        expires: Date.now() + 60 * 60 * 1000,
+        action: "read",
+        version: "v4"
+    });
+
     return res.Ok({
         errorMessage: null,
         success: true,
@@ -318,7 +323,8 @@ router.get("/find/get/:id", authorize, async (req, res) => {
             lat: petLocation.lat,
             lng: petLocation.lng,
             localizacao: pet.localizacao,
-            userId: pet.userId
+            userId: pet.userId,
+            petImage: image[0]
         } as DetailFindPetDTO_Res
     })
 

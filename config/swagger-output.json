@@ -241,6 +241,39 @@
         }
       }
     },
+    "/api/pet/locateByLatLng": {
+      "post": {
+        "tags": [
+          "Pet"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "lat": {
+                  "example": "any"
+                },
+                "lng": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
     "/api/pet/find/get/{id}": {
       "get": {
         "tags": [
