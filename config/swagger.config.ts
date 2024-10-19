@@ -19,7 +19,7 @@ const doc = {
     },
   },
   security: [],
-};
+}; 
 
 const mainFilePath = './src/index.ts'; // Arquivo principal onde os app.use estão definidos
 
