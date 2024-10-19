@@ -6,4 +6,5 @@ export default interface DetailFindPetDTO_Res {
     lng: number
     userId: string
     petImage: string
+    coleira: boolean
 }

@@ -60,7 +60,7 @@ router.get("/location/all", authorize, async (req, res) => {
     var bucket = admin.storage().bucket();
 
     const locatePromises = list.map(async (i) => {
-        var file = bucket.file(`imagens/${i.petId}/thumb`);
+        var file = bucket.file(`pets/${i.petId}/thumb`);
         var image = await file.getSignedUrl({
             expires: Date.now() + 60 * 60 * 1000,
             action: "read",
@@ -85,43 +85,6 @@ router.get("/location/all", authorize, async (req, res) => {
     })
 })
 
-
-// router.post("/find/uploadImage", upload.single("image"), async (req, res) => {
-//     const f = req.file;
-//     var ee = req.body;
-//     if (!f){
-//         return res.BadRequest({
-//             data: null,
-//             errorMessage: "Nenhum arquivo encontrado",
-//             success: false
-//         })  
-//     }  else {
-
-
-//         const bk = admin.storage().bucket();
-
-//         const filess =  bk.file(f.originalname);
-//         await filess.save(f.buffer, {
-//             metadata: {
-//                 contentType: req.file?.mimetype
-//             }
-//         })
-
-
-
-//         var e = await bk.getSignedUrl({
-//             expires: Date.now() + 60 * 60 * 1000,
-//             action: "list",
-//             version: "v4"
-//         })
-
-//         res.Ok({
-//             data: e[0],
-//             errorMessage: null,
-//             success: true
-//         })
-//     }
-// });
 
 router.put("/find/update", authorize, async (req, res) => {
     /*#swagger.summary = "Alterar informações/localização do Pet." */
@@ -149,7 +112,9 @@ router.put("/find/update", authorize, async (req, res) => {
         id: data.petId,
         localizacao: data.localicacao,
         status: data.status,
-        userId: pet.userId
+        userId: pet.userId,
+        coleira: pet.coleira,
+        apelido: pet.apelido
     })
 
     var petLocationInstance = await fireservice.find<petLocation>("petLocations", {
@@ -229,15 +194,24 @@ router.post("/find/register", authorize, upload.single("img"), async (req, res) 
         })
 
         var location = await googleService.Geocode.GetByAddress(data.localizacao);
+        console.log({ data: data.localizacao, location });
         if (location == null)
             return res.status(400).send("Localização (lat,lng) não foi encontrada.");
+
+        if (location.results[0]?.geometry == undefined)
+            return res.BadRequest({
+                data: null,
+                errorMessage: "Localização não encontrada. Por favor, cite mais informações de localização e tente novamente.",
+                success: false,
+            })
 
         const newPet = await fireservice.register<pet>("pets", {
             userId: req.user?.uid!,
             apelido: data.apelido,
             localizacao: data.localizacao,
             descricao: data.descricao,
-            status: data.status
+            status: data.status,
+            coleira: data.coleira == "true"
         });
 
         await fireservice.register<petLocation>("petLocations", {
@@ -249,7 +223,7 @@ router.post("/find/register", authorize, upload.single("img"), async (req, res) 
 
         //Salvar imagem
         const bk = admin.storage().bucket();
-        var fileName = `imagens/${newPet.id}/${file.originalname}`;
+        var fileName = `pets/${newPet.id}/thumb`;
         const filess = bk.file(fileName);
         await filess.save(file.buffer, {
             metadata: {
@@ -260,7 +234,8 @@ router.post("/find/register", authorize, upload.single("img"), async (req, res) 
 
         return res.Ok();
     } catch (error) {
-        var errorString = error as string;
+        var errorAny = error as any;
+        var errorString = errorAny.toString();
         return res.BadRequest({
             data: null,
             errorMessage: errorString,
@@ -273,7 +248,7 @@ router.post("/find/register", authorize, upload.single("img"), async (req, res) 
 
 router.post("/locateByLatLng", authorize, async (req, res) => {
     const data = req.body as LocateByLatLngDTO_Req;
-    
+
     var locate = await googleService.Geocode.GetByLatLng(data.lat, data.lng);
 
     return res.Ok({
@@ -307,7 +282,7 @@ router.get("/find/get/:id", authorize, async (req, res) => {
     })
 
     var bucket = admin.storage().bucket();
-    var file = bucket.file(`imagens/${pet.id}/thumb`);
+    var file = bucket.file(`pets/${pet.id}/thumb`);
     var image = await file.getSignedUrl({
         expires: Date.now() + 60 * 60 * 1000,
         action: "read",
@@ -324,7 +299,8 @@ router.get("/find/get/:id", authorize, async (req, res) => {
             lng: petLocation.lng,
             localizacao: pet.localizacao,
             userId: pet.userId,
-            petImage: image[0]
+            petImage: image[0],
+            coleira: pet.coleira
         } as DetailFindPetDTO_Res
     })
 

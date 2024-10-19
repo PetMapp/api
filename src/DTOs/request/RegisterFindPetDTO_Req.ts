@@ -3,4 +3,5 @@ export default interface RegisterFindPetDTO_Req{
     localizacao: string
     descricao: string
     status: string
+    coleira: string
 }
