@@ -438,5 +438,9 @@
       }
     }
   },
-  "security": []
+  "security": [
+    {
+      "BearerAuth": []
+    }
+  ]
 }

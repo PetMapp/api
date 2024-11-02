@@ -55,6 +55,7 @@ router.get("/location/all", authorize, async (req, res) => {
             ]
         }
     } */
+   console.log({req});
     var list: petLocation[] = await fireservice.list<petLocation>("petLocations");
     // var locate: petLocationDTO_Res[] = [];
     var bucket = admin.storage().bucket();

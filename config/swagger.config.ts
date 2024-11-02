@@ -43,7 +43,11 @@ const doc: Doc = {
             description: 'Insira o token no formato: Bearer {token}',
         },
     },
-    security: [],
+    security: [
+        {
+            BearerAuth: []
+        }
+    ],
 };
 
 const mainFilePath: string = './src/index.ts'; // Arquivo principal onde os app.use estão definidos
@@ -79,13 +83,12 @@ const generateTags = (): void => {
 generateTags();
 
 // Função que gera o Swagger e retorna uma promessa
-const generateSwagger = (): Promise<false | { success: boolean; data: any }> => {
+const generateSwagger = async () => {
     generateTags();
     const outputFile: string = './config/swagger-output.json';
     const endpointsFiles: string[] = ['./src/index.ts'];
-    
-    // Retorne diretamente a execução de swaggerAutogen
-    return swaggerAutogen()(outputFile, endpointsFiles, doc);
-};
 
+    // Retorne diretamente a execução de swaggerAutogen
+    await swaggerAutogen()(outputFile, endpointsFiles, doc);
+};
 export default generateSwagger;
