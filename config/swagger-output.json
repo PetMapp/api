@@ -301,6 +301,23 @@
         }
       }
     },
+    "/api/pet/myPets": {
+      "get": {
+        "tags": [
+          "Pet"
+        ],
+        "summary": "Endpoint para retornar os pets do usuário logado.",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
     "/api/post/{id}": {
       "get": {
         "tags": [

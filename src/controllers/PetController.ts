@@ -307,5 +307,31 @@ router.get("/find/get/:id", authorize, async (req, res) => {
 
 })
 
+router.get("/myPets", authorize, async (req, res) => {
+    /**#swagger.summary = "Endpoint para retornar os pets do usuário logado." */
+
+    try {
+        const userId = req.user?.uid;
+
+        var allPets: pet[] = await fireservice.list<pet>("pets");
+        const userPets = allPets.filter(pet => pet.userId === userId);
+
+        return res.Ok({
+            errorMessage: null,
+            success: true,
+            data: {
+                list: userPets
+            }
+        });
+    } catch (error) {
+        return res.BadRequest({
+            data: null,
+            errorMessage: "Não foi possível achar os pets do usuário.",
+            status: 500,
+            success: false
+        })
+    }
+})
+
 const PetController = router;
 export default PetController;
