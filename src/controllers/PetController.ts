@@ -333,5 +333,59 @@ router.get("/myPets", authorize, async (req, res) => {
     }
 })
 
+router.get("/find/search", authorize, async (req, res) => {
+    /**#swagger.summary = "Pesquisa por pets usando um único parâmetro." */
+    const { query } = req.query; // Recebe a variável genérica 'query'
+
+    if (!query) {
+        return res.BadRequest({
+            data: null,
+            errorMessage: "Query de pesquisa é necessária.",
+            success: false,
+        });
+    }
+
+    try {
+        // Recupera todos os pets
+        const allPets: pet[] = await fireservice.list<pet>("pets");
+
+        // Filtra pets por apelido, descrição ou localização que contenham a query
+        const filteredPets = allPets.filter((pet) =>
+            pet.apelido?.toLowerCase().includes(query.toString().toLowerCase()) ||
+            pet.descricao?.toLowerCase().includes(query.toString().toLowerCase()) ||
+            pet.localizacao?.toLowerCase().includes(query.toString().toLowerCase())
+        );
+
+        // Para cada pet filtrado, gera a URL da imagem
+        const petsWithImages = await Promise.all(filteredPets.map(async (pet) => {
+            // Obtém a imagem do pet do Firebase Storage
+            const bucket = admin.storage().bucket();
+            const file = bucket.file(`pets/${pet.id}/thumb`);
+            const imageUrl = await file.getSignedUrl({
+                expires: Date.now() + 60 * 60 * 1000, // A URL expira em 1 hora
+                action: "read",
+                version: "v4"
+            });
+
+            // Adiciona a URL da imagem ao objeto do pet
+            return { ...pet, imageUrl: imageUrl[0] };
+        }));
+
+        return res.Ok({
+            errorMessage: null,
+            success: true,
+            data: petsWithImages,
+        });
+    } catch (error) {
+        return res.BadRequest({
+            data: null,
+            errorMessage: "Erro ao pesquisar pets.",
+            success: false,
+        });
+    }
+});
+
+
+
 const PetController = router;
 export default PetController;

@@ -318,6 +318,30 @@
         }
       }
     },
+    "/api/pet/find/search": {
+      "get": {
+        "tags": [
+          "Pet"
+        ],
+        "summary": "Pesquisa por pets usando um único parâmetro.",
+        "description": "",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
     "/api/post/{id}": {
       "get": {
         "tags": [
