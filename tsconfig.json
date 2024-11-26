@@ -14,7 +14,7 @@
       "outDir": "lib",
       "typeRoots": ["./src/types", "./node_modules/@types"] // Inclui o caminho para os tipos personalizados
     },
-    "include": ["src/**/*.ts", "config/**/*.ts"],
+    "include": ["src/**/*.ts", "config/**/*.ts", "config/swagger.config"],
     "exclude": ["node_modules"]
   }
   
