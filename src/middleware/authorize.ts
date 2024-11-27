@@ -4,6 +4,7 @@ import BadRequestModel from '../models/BadRequestModel';
 
 const authorize = async (req: Request, res: Response, next: NextFunction) => {
     const authHeader = req.headers['authorization'];
+
     if (!authHeader) {
         return res.status(401).json(
             {
@@ -16,6 +17,7 @@ const authorize = async (req: Request, res: Response, next: NextFunction) => {
     const token = authHeader.split(' ')[1];
 
     try {
+        console.log({"AUHTERER": token})
         const decodedToken = await auth.verifyIdToken(token);
         req.user = decodedToken;
         next();

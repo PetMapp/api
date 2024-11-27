@@ -1,9 +1,9 @@
 {
   "swagger": "2.0",
   "info": {
-    "title": "Documentação API PetMap",
-    "description": "Esta documentação serve como guia para desenvolvedores entenderem como utilizar e integrar a API PetMap de forma eficiente, detalhando endpoints, parâmetros e métodos de autenticação.",
-    "version": "1.0.0"
+    "title": "PetMap",
+    "version": "v1.0",
+    "description": "..."
   },
   "host": "localhost:3000",
   "basePath": "/",
@@ -19,461 +19,839 @@
     }
   },
   "paths": {
-    "/api/auth/register": {
-      "post": {
+    "/api/auth/users": {
+      "get": {
+        "parameters": [],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Gerado por GenX",
         "tags": [
           "Auth"
         ],
-        "summary": "Registra um usuário.",
-        "description": "",
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
+            "schema": {
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "nome": {
+                    "type": "string",
+                    "example": "example"
+                  },
+                  "id": {
+                    "type": "string",
+                    "example": "example"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/register": {
+      "post": {
         "parameters": [
           {
             "name": "body",
             "in": "body",
+            "required": true,
             "schema": {
               "type": "object",
               "properties": {
                 "nome": {
-                  "example": "any"
+                  "type": "string"
                 },
                 "email": {
-                  "example": "any"
+                  "type": "string"
                 },
                 "senha": {
-                  "example": "any"
+                  "type": "string"
                 },
                 "confirmarSenha": {
-                  "example": "any"
+                  "type": "string"
                 }
               }
             }
           }
         ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "201": {
-            "description": "Created"
-          },
-          "400": {
-            "description": "Bad Request"
+        "security": [
+          {
+            "BearerAuth": []
           }
-        }
-      }
-    },
-    "/api/auth/users": {
-      "get": {
+        ],
+        "description": "Gerado por GenX",
         "tags": [
           "Auth"
         ],
-        "description": "",
         "responses": {
-          "200": {
-            "description": "OK"
+          "201": {
+            "description": "Response for status 201",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "Usuário registrado com sucesso"
+                },
+                "uid": {
+                  "type": "string",
+                  "example": "example"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Response for status 400",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "message": {
+                  "type": "string",
+                  "example": "O corpo da requisição está vazio ou mal formatado."
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/pet/location/all": {
       "get": {
+        "parameters": [],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Gerado por GenX",
         "tags": [
           "Pet"
         ],
-        "summary": "Lista todas as localizações dos pets",
-        "description": "",
         "responses": {
           "200": {
-            "description": "Lista de pets no mapa!",
+            "description": "Response for status 200",
             "schema": {
               "type": "object",
               "properties": {
                 "success": {
-                  "type": "boolean",
-                  "example": true
+                  "type": "string"
                 },
                 "errorMessage": {
                   "type": "string",
-                  "example": ""
+                  "nullable": true
                 },
                 "data": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "lat": {
-                        "type": "number",
-                        "example": -42.23099433
-                      },
-                      "lng": {
-                        "type": "number",
-                        "example": -8.234699818
-                      },
-                      "petId": {
-                        "type": "string",
-                        "example": "Elsndsdasosd8w"
-                      }
-                    }
-                  }
+                  "type": "string",
+                  "nullable": true
                 }
-              },
-              "xml": {
-                "name": "main"
               }
             }
-          },
-          "400": {
-            "description": "Bad Request"
           }
         }
       }
     },
     "/api/pet/find/update": {
       "put": {
-        "tags": [
-          "Pet"
-        ],
-        "summary": "Alterar informações/localização do Pet.",
-        "description": "",
         "parameters": [
           {
             "name": "body",
             "in": "body",
+            "required": true,
             "schema": {
               "type": "object",
               "properties": {
                 "petId": {
-                  "example": "any"
+                  "type": "string"
                 },
-                "localicacao": {
-                  "example": "any"
+                "apelido": {
+                  "type": "string"
                 },
                 "descricao": {
-                  "example": "any"
+                  "type": "string"
                 },
                 "status": {
-                  "example": "any"
+                  "type": "string"
+                },
+                "localicacao": {
+                  "type": "string"
                 }
               }
             }
           }
         ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Gerado por GenX",
+        "tags": [
+          "Pet"
+        ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Response for status 200",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "object",
+                  "properties": {}
+                },
+                "errorMessage": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "success": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Response for status 400",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "errorMessage": {
+                  "type": "string",
+                  "example": "você não é o dono do pet para realizar alterações."
+                },
+                "success": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/pet/find/remove": {
       "delete": {
-        "tags": [
-          "Pet"
-        ],
-        "description": "",
         "parameters": [
           {
             "name": "body",
             "in": "body",
+            "required": true,
             "schema": {
               "type": "object",
               "properties": {
                 "petId": {
-                  "example": "any"
+                  "type": "string"
                 }
               }
             }
           }
         ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
+        "security": [
+          {
+            "BearerAuth": []
           }
-        }
-      }
-    },
-    "/api/pet/find/register": {
-      "post": {
+        ],
+        "description": "Gerado por GenX",
         "tags": [
           "Pet"
         ],
-        "summary": "Endpoint de registro de um novo pet e registrar no mapa.",
-        "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
+        "responses": {
+          "200": {
+            "description": "Response for status 200",
             "schema": {
               "type": "object",
               "properties": {
-                "localizacao": {
-                  "example": "any"
+                "data": {
+                  "type": "string",
+                  "nullable": true
                 },
-                "apelido": {
-                  "example": "any"
+                "errorMessage": {
+                  "type": "string",
+                  "nullable": true
                 },
-                "descricao": {
-                  "example": "any"
-                },
-                "status": {
-                  "example": "any"
-                },
-                "coleira": {
-                  "example": "any"
+                "success": {
+                  "type": "string"
                 }
               }
             }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Response for status 400",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "errorMessage": {
+                  "type": "string",
+                  "example": "você não é o dono do pet para realizar alterações."
+                },
+                "success": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/pet/locateByLatLng": {
       "post": {
-        "tags": [
-          "Pet"
-        ],
-        "description": "",
         "parameters": [
           {
             "name": "body",
             "in": "body",
+            "required": true,
             "schema": {
               "type": "object",
               "properties": {
                 "lat": {
-                  "example": "any"
+                  "type": "number"
                 },
                 "lng": {
-                  "example": "any"
+                  "type": "number"
                 }
               }
             }
           }
         ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Gerado por GenX",
+        "tags": [
+          "Pet"
+        ],
         "responses": {
           "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
+            "description": "Response for status 200",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "string",
+                  "example": "example"
+                },
+                "errorMessage": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "success": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
     },
-    "/api/pet/find/get/{id}": {
+    "/api/pet/find/get/:id": {
       "get": {
+        "parameters": [],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Gerado por GenX",
         "tags": [
           "Pet"
         ],
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Response for status 200",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "errorMessage": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "success": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "object",
+                  "properties": {
+                    "apelido": {
+                      "type": "string",
+                      "example": "example"
+                    },
+                    "descricao": {
+                      "type": "string",
+                      "example": "example"
+                    },
+                    "lat": {
+                      "type": "number",
+                      "example": 0
+                    },
+                    "lng": {
+                      "type": "number",
+                      "example": 0
+                    },
+                    "localizacao": {
+                      "type": "string",
+                      "example": "example"
+                    },
+                    "userId": {
+                      "type": "string",
+                      "example": "example"
+                    },
+                    "petImage": {
+                      "type": "string",
+                      "example": "example"
+                    },
+                    "coleira": {
+                      "oneOf": [
+                        {
+                          "type": "string"
+                        },
+                        {
+                          "type": "string"
+                        }
+                      ]
+                    }
+                  }
+                }
+              }
+            }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Response for status 400",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "errorMessage": {
+                  "type": "string",
+                  "example": "Localização do pet não encontrada."
+                },
+                "success": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/pet/myPets": {
       "get": {
+        "parameters": [],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Gerado por GenX",
         "tags": [
           "Pet"
         ],
-        "summary": "Endpoint para retornar os pets do usuário logado.",
-        "description": "",
         "responses": {
           "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
+            "description": "Response for status 200",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "errorMessage": {
+                  "type": "string",
+                  "example": "Não foi possível achar os pets do usuário."
+                },
+                "status": {
+                  "type": "number",
+                  "example": 500
+                },
+                "success": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
     },
     "/api/pet/find/search": {
       "get": {
+        "parameters": [],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Gerado por GenX",
         "tags": [
           "Pet"
         ],
-        "summary": "Pesquisa por pets usando um único parâmetro.",
-        "description": "",
-        "parameters": [
-          {
-            "name": "query",
-            "in": "query",
-            "type": "string"
-          }
-        ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Response for status 200",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "errorMessage": {
+                  "type": "string",
+                  "example": "Erro ao pesquisar pets."
+                },
+                "success": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Response for status 400",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "errorMessage": {
+                  "type": "string",
+                  "example": "Query de pesquisa é necessária."
+                },
+                "success": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
     },
-    "/api/post/{id}": {
+    "/post/:id": {
       "get": {
+        "parameters": [],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Gerado por GenX",
         "tags": [
           "Post"
         ],
-        "summary": "Retorna um post específico.",
-        "description": "",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "type": "string"
-          }
-        ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Response for status 200",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "errorMessage": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "success": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "string",
+                  "example": "example"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Response for status 400",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "errorMessage": {
+                  "type": "string",
+                  "example": "Esse post não existe."
+                },
+                "success": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
     },
-    "/api/post/create": {
+    "/post/create": {
       "post": {
-        "tags": [
-          "Post"
-        ],
-        "summary": "Criar um post.",
-        "description": "",
         "parameters": [
           {
             "name": "body",
             "in": "body",
+            "required": true,
             "schema": {
               "type": "object",
               "properties": {
+                "userId": {
+                  "type": "string"
+                },
                 "titulo": {
-                  "example": "any"
+                  "type": "string"
                 },
                 "descricao": {
-                  "example": "any"
+                  "type": "string"
                 },
                 "coleira": {
-                  "example": "any"
+                  "type": "boolean"
                 }
               }
             }
           }
         ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Gerado por GenX",
+        "tags": [
+          "Post"
+        ],
         "responses": {
           "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
+            "description": "Response for status 200",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "success": {
+                  "type": "string"
+                },
+                "data": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "errorMessage": {
+                  "type": "string",
+                  "nullable": true
+                }
+              }
+            }
           }
         }
       }
     },
-    "/api/post/update": {
+    "/post/update": {
       "put": {
-        "tags": [
-          "Post"
-        ],
-        "summary": "Alterar um post.",
-        "description": "",
         "parameters": [
           {
             "name": "body",
             "in": "body",
+            "required": true,
             "schema": {
               "type": "object",
               "properties": {
                 "postId": {
-                  "example": "any"
+                  "type": "string"
                 },
                 "titulo": {
-                  "example": "any"
+                  "type": "string"
                 },
                 "descricao": {
-                  "example": "any"
+                  "type": "string"
                 },
                 "coleira": {
-                  "example": "any"
+                  "type": "boolean"
                 }
               }
             }
           }
         ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Gerado por GenX",
+        "tags": [
+          "Post"
+        ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Response for status 200",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "object",
+                  "properties": {}
+                },
+                "errorMessage": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "success": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Response for status 400",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "errorMessage": {
+                  "type": "string",
+                  "example": "Post não encontrado."
+                },
+                "success": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Response for status 403",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "errorMessage": {
+                  "type": "string",
+                  "example": "Você não tem permissão para alterar esse post."
+                },
+                "success": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }
     },
-    "/api/post/delete": {
+    "/post/delete": {
       "delete": {
-        "tags": [
-          "Post"
-        ],
-        "summary": "Deletar um post.",
-        "description": "",
         "parameters": [
           {
             "name": "body",
             "in": "body",
+            "required": true,
             "schema": {
               "type": "object",
               "properties": {
                 "postId": {
-                  "example": "any"
+                  "type": "string"
                 }
               }
             }
           }
         ],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "description": "Gerado por GenX",
+        "tags": [
+          "Post"
+        ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "Response for status 200",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "errorMessage": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "success": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "400": {
-            "description": "Bad Request"
+            "description": "Response for status 400",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "errorMessage": {
+                  "type": "string",
+                  "example": "Post não encontrado."
+                },
+                "success": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Response for status 403",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "errorMessage": {
+                  "type": "string",
+                  "example": "Você não tem permissão para deletar este post."
+                },
+                "success": {
+                  "type": "string"
+                }
+              }
+            }
           },
           "500": {
-            "description": "Internal Server Error"
+            "description": "Response for status 500",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "data": {
+                  "type": "string",
+                  "nullable": true
+                },
+                "errorMessage": {
+                  "type": "string",
+                  "example": "Erro ao tentar deletar o post."
+                },
+                "success": {
+                  "type": "string"
+                }
+              }
+            }
           }
         }
       }

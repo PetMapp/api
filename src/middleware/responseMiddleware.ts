@@ -4,7 +4,7 @@ import BadRequestModel from '../models/BadRequestModel';
 
 export const responseMiddleware = (req: Request, res: Response, next: NextFunction) => {
   res.Ok = (response: ResponseModel) => {
-    res.json(response);
+    res.status(200).json(response);
   };
 
   next();

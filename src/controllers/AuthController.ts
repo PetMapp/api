@@ -1,4 +1,4 @@
-import express from "express";
+import express, { Request } from "express";
 import FirebaseService from "../services/FirebaseService";
 import user from "../models/entities/user";
 import { admin } from "../firebase";
@@ -6,9 +6,19 @@ const Router = express.Router();
 
 var fireservice = new FirebaseService();
 
-Router.post("/register", async (req, res) => {
-    /**#swagger.summary = "Registra um usuário." */
+Router.get("/users", async (req, res) => {
 
+    var list = await fireservice.list<user>("users");
+
+    res.status(200).send(list);
+})
+
+Router.post("/register", async (req: Request, res) => {
+    /**#swagger.summary = "Registra um usuário." */
+    if (!req.body) {
+        return res.status(400).json({ message: "O corpo da requisição está vazio ou mal formatado." });
+    }
+    
     const { nome, email, senha, confirmarSenha } = req.body;
 
     var checkEmail = await admin.auth().getUserByEmail(email);
@@ -42,12 +52,4 @@ Router.post("/register", async (req, res) => {
     }
 })
 
-Router.get("/users", async (req, res) => {
-
-    var list = await fireservice.list<user>("users");
-
-    res.send(list);
-})
-
-const AuthController = Router;
-export default AuthController;
+export default Router;

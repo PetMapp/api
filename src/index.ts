@@ -1,15 +1,14 @@
 import express from 'express';
-import AuthenticationController from './controllers/AuthController';
 import PetController from './controllers/PetController';
-import PostController from './controllers/PostController';
-import swaggerUi from 'swagger-ui-express';
-import swaggerFile from './../config/swagger-output.json';
-import generateSwagger from '../config/swagger.config';
 import { badRequestMiddleware, responseMiddleware } from './middleware/responseMiddleware';
 import cors from 'cors';
+import { GenerateInit } from 'swagger-genx';
+
 import { https } from 'firebase-functions/v2';
 import './firebase'; // Importa e inicializa o Firebase antes de qualquer outra coisa.
 import started from './firebase';
+import AuthController from './controllers/AuthController';
+import PostController from './controllers/PostController';
 started();
 
 
@@ -23,27 +22,27 @@ app.use(responseMiddleware);
 app.use(badRequestMiddleware);
 
 
-var appHandle  = express.Router();
+app.use('/api/auth', AuthController);
 
-appHandle.use('/auth', AuthenticationController
-  /*#swagger.tags = ["Auth"]*/
-);
+app.use('/api/pet', PetController);
 
-appHandle.use('/pet', PetController
-  /*#swagger.tags = ["Pet"]*/
-);
+app.use('/post', PostController);
 
-appHandle.use('/post', PostController
-  /*#swagger.tags = ["Post"]*/
-)
-
-
-app.use("/api", appHandle);
-generateSwagger().then(() => {
-  app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
+GenerateInit(app, {
+  host: "localhost:3000",
+  document: {
+    title: "PetMap",
+    description: "..."
+  },
+  schemes: ["https"],
+  security: [""]
+}, () => {
   app.listen(port, () => {
     console.log(`Servidor rodando na porta ${port}. Documentação disponível em http://localhost:3000/docs`);
   });
+
 })
+
+// app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
 
 exports.api = https.onRequest(app);

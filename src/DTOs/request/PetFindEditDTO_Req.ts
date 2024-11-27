@@ -1,4 +1,4 @@
-export default interface PetFindEditDTO_Req {
+export interface PetFindEditDTO_Req {
     petId: string
     apelido: string
     descricao: string
