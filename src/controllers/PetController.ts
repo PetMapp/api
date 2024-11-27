@@ -52,21 +52,21 @@ var upload = multer({ storage });
 router.get("/location/all", authorize, async (req, res) => {
     var list: petLocation[] = await fireservice.list<petLocation>("petLocations");
     // var locate: petLocationDTO_Res[] = [];
-    // var bucket = admin.storage().bucket();
+    var bucket = admin.storage().bucket();
 
     const locatePromises = list.map(async (i) => {
-        // var file = bucket.file(`pets/${i.petId}/thumb`);
-        // var image = await file.getSignedUrl({
-        //     expires: Date.now() + 60 * 60 * 1000,
-        //     action: "read",
-        //     version: "v4"
-        // });
+        var file = bucket.file(`pets/${i.petId}/thumb`);
+        var image = await file.getSignedUrl({
+            expires: Date.now() + 60 * 60 * 1000,
+            action: "read",
+            version: "v4"
+        });
 
         return {
             lat: i.lat,
             lng: i.lng,
             petId: i.petId,
-            petImage: ""
+            petImage: image[0] ?? ""
         };
     })
 
