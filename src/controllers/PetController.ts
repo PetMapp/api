@@ -39,7 +39,7 @@ var upload = multer({ storage });
 
 // })
 
-router.get("/location/all", authorize, async (req, res) => {
+router.get("/location/all", async (req, res) => {
     /*#swagger.summary = "Lista todas as localizações dos pets" */
     /*#swagger.responses[200] = {
         description: 'Lista de pets no mapa!',
@@ -261,7 +261,7 @@ router.post("/locateByLatLng", authorize, async (req, res) => {
 })
 
 
-router.get("/find/get/:id", authorize, async (req, res) => {
+router.get("/find/get/:id", async (req, res) => {
     const { id } = req.params;
 
     var pet = await fireservice.get<pet>("pets", id);
