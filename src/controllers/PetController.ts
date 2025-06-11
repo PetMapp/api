@@ -13,6 +13,7 @@ import multer from 'multer';
 import { admin } from "../firebase";
 import petLocationDTO_Res from "../DTOs/response/PetLocationDTO_Res";
 import LocateByLatLngDTO_Req from "../DTOs/request/LocateByLatLngDTO_Req";
+import axios from "axios";
 
 var fireservice = new FirebaseService();
 var googleService = new GoogleService();
@@ -55,7 +56,7 @@ router.get("/location/all", async (req, res) => {
             ]
         }
     } */
-   console.log({req});
+    console.log({ req });
     var list: petLocation[] = await fireservice.list<petLocation>("petLocations");
     // var locate: petLocationDTO_Res[] = [];
     var bucket = admin.storage().bucket();
@@ -186,26 +187,27 @@ router.post("/find/register", authorize, upload.single("img"), async (req, res) 
     const data = req.body as RegisterFindPetDTO_Req;
 
     try {
-
-        var file = req.file;
-        if (!file) return res.BadRequest({
-            data: null,
-            errorMessage: "É necessário inserir a imagem do pet",
-            success: false
-        })
-
-        var location = await googleService.Geocode.GetByAddress(data.localizacao);
-        console.log({ data: data.localizacao, location });
-        if (location == null)
-            return res.status(400).send("Localização (lat,lng) não foi encontrada.");
-
-        if (location.results[0]?.geometry == undefined)
-            return res.BadRequest({
+        const file = req.file;
+        if (!file) {
+            return res.status(400).json({
                 data: null,
-                errorMessage: "Localização não encontrada. Por favor, cite mais informações de localização e tente novamente.",
-                success: false,
-            })
+                errorMessage: "É necessário inserir a imagem do pet",
+                success: false
+            });
+        }
 
+        // Geocodificação usando Nominatim
+        const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(data.localizacao)}`;
+        const responseGeo = await axios.get(nominatimUrl, {
+            headers: { 'User-Agent': 'mapets/1.0' }
+        });
+
+        const location = responseGeo.data[0];
+        if (!location) {
+            return res.status(400).send("Localização (lat,lng) não foi encontrada.");
+        }
+
+        // Criação do pet
         const newPet = await fireservice.register<pet>("pets", {
             userId: req.user?.uid!,
             apelido: data.apelido,
@@ -215,37 +217,34 @@ router.post("/find/register", authorize, upload.single("img"), async (req, res) 
             coleira: data.coleira == "true"
         });
 
+        // Registro da localização
         await fireservice.register<petLocation>("petLocations", {
-            lat: location.results[0].geometry.location.lat,
-            lng: location.results[0].geometry.location.lng,
+            lat: parseFloat(location.lat),
+            lng: parseFloat(location.lon),
             petId: newPet.id
-        })
+        });
 
-
-        //Salvar imagem
+        // Upload da imagem para o Firebase Storage
         const bk = admin.storage().bucket();
-        var fileName = `pets/${newPet.id}/thumb`;
-        const filess = bk.file(fileName);
-        await filess.save(file.buffer, {
+        const fileName = `pets/${newPet.id}/thumb`; // Corrigido com crase
+        const firebaseFile = bk.file(fileName);
+        await firebaseFile.save(file.buffer, {
             metadata: {
-                contentType: req.file?.mimetype
+                contentType: file.mimetype
             }
-        })
-        //
+        });
 
-        return res.Ok();
-    } catch (error) {
-        var errorAny = error as any;
-        var errorString = errorAny.toString();
-        return res.BadRequest({
+        return res.status(201).json({ message: 'Pet cadastrado com sucesso!' });
+
+    } catch (error: any) {
+        console.error("Erro ao cadastrar pet:", error.message);
+        return res.status(500).json({
             data: null,
-            errorMessage: errorString,
-            status: 500,
+            errorMessage: error.message,
             success: false
-        })
+        });
     }
-})
-
+});
 
 router.post("/locateByLatLng", authorize, async (req, res) => {
     const data = req.body as LocateByLatLngDTO_Req;
