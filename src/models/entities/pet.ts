@@ -6,5 +6,6 @@ export default interface pet extends fbEntity {
     localizacao: string
     descricao: string
     status: string
-    coleira: boolean
+    coleira: boolean,
+    createdAt: string
 }

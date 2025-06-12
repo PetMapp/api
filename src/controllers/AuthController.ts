@@ -49,5 +49,36 @@ Router.get("/users", async (req, res) => {
     res.send(list);
 })
 
+Router.get("/user/:id", async (req, res) => {
+    /**#swagger.summary = "Busca um usuário pelo ID." */
+    
+    const { id } = req.params;
+
+    try {
+        const user = await admin.auth().getUser(id);
+
+        if (!user) {
+            return res.status(404).json({
+                data: null,
+                errorMessage: "Usuário não encontrado.",
+                success: false
+            });
+        }
+
+        res.status(200).json({
+            data: user,
+            errorMessage: null,
+            success: true
+        });
+    } catch (error) {
+        console.error("Erro ao buscar usuário por ID:", error);
+        res.status(500).json({
+            data: null,
+            errorMessage: "Erro ao buscar o usuário.",
+            success: false
+        });
+    }
+});
+
 const AuthController = Router;
 export default AuthController;

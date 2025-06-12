@@ -116,7 +116,8 @@ router.put("/find/update", authorize, async (req, res) => {
         status: data.status,
         userId: pet.userId,
         coleira: pet.coleira,
-        apelido: pet.apelido
+        apelido: pet.apelido,
+        createdAt: new Date().toISOString()
     })
 
     var petLocationInstance = await fireservice.find<petLocation>("petLocations", {
@@ -214,7 +215,8 @@ router.post("/find/register", authorize, upload.single("img"), async (req, res) 
             localizacao: data.localizacao,
             descricao: data.descricao,
             status: data.status,
-            coleira: data.coleira == "true"
+            coleira: data.coleira == "true",
+            createdAt: new Date().toISOString()
         });
 
         // Registro da localização
