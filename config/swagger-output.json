@@ -514,6 +514,130 @@
           }
         }
       }
+    },
+    "/api/commentary/create": {
+      "post": {
+        "tags": [
+          "Commentary"
+        ],
+        "summary": "Registrar novo comentário em um pet",
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "text": {
+                  "example": "any"
+                },
+                "petId": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/api/commentary/list/{petId}": {
+      "get": {
+        "tags": [
+          "Commentary"
+        ],
+        "summary": "Listar comentários de um pet específico",
+        "description": "",
+        "parameters": [
+          {
+            "name": "petId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/api/commentary/edit": {
+      "put": {
+        "tags": [
+          "Commentary"
+        ],
+        "summary": "Editar texto de um comentário (somente o dono pode editar)",
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "commentaryId": {
+                  "example": "any"
+                },
+                "newText": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/api/commentary/remove": {
+      "delete": {
+        "tags": [
+          "Commentary"
+        ],
+        "summary": "Remover comentário (apenas o dono do comentário pode remover)",
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "commentaryId": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
     }
   },
   "security": [
