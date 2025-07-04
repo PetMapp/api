@@ -22,6 +22,7 @@ router.post("/create", authorize, async (req, res) => {
             text: data.text,
             petId: data.petId,
             createdAt: new Date().toISOString(),
+            parentId: data.parentId ?? null,
         });
 
         return res.Ok({
@@ -67,6 +68,7 @@ router.get("/list/:petId", async (req, res) => {
                     userId: c.userId,
                     text: c.text,
                     createdAt: c.createdAt,
+                    parentId: c.parentId || null,
                     user: {
                         displayName,
                         photoURL,
@@ -172,6 +174,84 @@ router.delete("/remove", authorize, async (req, res) => {
         return res.BadRequest({
             data: null,
             errorMessage: "Erro ao remover comentário.",
+            success: false,
+        });
+    }
+});
+
+// Listar respostas recursivas de um comentário
+router.get("/replies/:commentId", async (req, res) => {
+    /**#swagger.summary = "Listar todas as respostas recursivas de um comentário, incluindo o nome do usuário destinatário" */
+    const { commentId } = req.params;
+
+    try {
+        const allComments = await fireservice.list<commentary>("commentaries");
+
+        // Mapa de comentários por ID para facilitar acesso ao pai
+        const commentMap = new Map(allComments.map(c => [c.id, c]));
+
+        // Função recursiva para montar lista de respostas
+        const buildRepliesTree = (parentId: string): commentary[] => {
+            const replies = allComments.filter(c => c.parentId === parentId);
+            return replies.flatMap(reply => [reply, ...buildRepliesTree(reply.id)]);
+        };
+
+        const replies = buildRepliesTree(commentId);
+
+        const result: CommentaryListDTO_Res[] = await Promise.all(
+            replies.map(async (c) => {
+                let displayName = 'Usuário desconhecido';
+                let photoURL = '';
+                let repliedToName = null;
+
+                // Nome de quem escreveu o comentário
+                try {
+                    const userRecord = await admin.auth().getUser(c.userId);
+                    displayName = userRecord.displayName || displayName;
+                    photoURL = userRecord.photoURL || '';
+                } catch (e) {
+                    console.warn(`Usuário ${c.userId} não encontrado no Firebase Auth.`);
+                }
+
+                // Nome da pessoa para quem a resposta foi enviada (comentário pai)
+                if (c.parentId) {
+                    const parentComment = commentMap.get(c.parentId);
+                    if (parentComment) {
+                        try {
+                            const parentUser = await admin.auth().getUser(parentComment.userId);
+                            repliedToName = parentUser.displayName || 'Usuário';
+                        } catch (e) {
+                            console.warn(`Usuário ${parentComment.userId} não encontrado para o comentário pai.`);
+                        }
+                    }
+                }
+
+                return {
+                    id: c.id,
+                    userId: c.userId,
+                    text: c.text,
+                    createdAt: c.createdAt,
+                    parentId: c.parentId || null,
+                    user: {
+                        displayName,
+                        photoURL,
+                    },
+                    repliedToName, // <-- novo campo
+                };
+            })
+        );
+
+        return res.Ok({
+            data: result,
+            errorMessage: null,
+            success: true,
+        });
+
+    } catch (error: any) {
+        console.error("Erro ao buscar respostas do comentário:", error.message);
+        return res.BadRequest({
+            data: null,
+            errorMessage: "Erro ao buscar respostas.",
             success: false,
         });
     }

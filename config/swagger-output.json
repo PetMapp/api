@@ -534,6 +534,9 @@
                 },
                 "petId": {
                   "example": "any"
+                },
+                "parentId": {
+                  "example": "any"
                 }
               }
             }
@@ -627,6 +630,31 @@
                 }
               }
             }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/api/commentary/replies/{commentId}": {
+      "get": {
+        "tags": [
+          "Commentary"
+        ],
+        "summary": "Listar todas as respostas recursivas de um comentário, incluindo o nome do usuário destinatário",
+        "description": "",
+        "parameters": [
+          {
+            "name": "commentId",
+            "in": "path",
+            "required": true,
+            "type": "string"
           }
         ],
         "responses": {
