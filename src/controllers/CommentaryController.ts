@@ -47,7 +47,9 @@ router.get("/list/:petId", async (req, res) => {
 
     try {
         const allComments = await fireservice.list<commentary>("commentaries");
-        const petComments = allComments.filter(c => c.petId === petId);
+        const petComments = allComments
+            .filter(c => c.petId === petId && !c.parentId)
+            .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
         // Obter dados de usuário para cada comentário
         const result: CommentaryListDTO_Res[] = await Promise.all(
