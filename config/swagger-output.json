@@ -666,6 +666,31 @@
           }
         }
       }
+    },
+    "/api/commentary/count-replies/{commentId}": {
+      "get": {
+        "tags": [
+          "Commentary"
+        ],
+        "summary": "Contar o número total de respostas recursivas de um comentário",
+        "description": "",
+        "parameters": [
+          {
+            "name": "commentId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
     }
   },
   "security": [

@@ -257,5 +257,39 @@ router.get("/replies/:commentId", async (req, res) => {
     }
 });
 
+// Contar número total de respostas recursivas de um comentário
+router.get("/count-replies/:commentId", async (req, res) => {
+    /**#swagger.summary = "Contar o número total de respostas recursivas de um comentário" */
+    const { commentId } = req.params;
+
+    try {
+        const allComments = await fireservice.list<commentary>("commentaries");
+
+        // Função recursiva para contar respostas
+        const countReplies = (parentId: string): number => {
+            const directReplies = allComments.filter(c => c.parentId === parentId);
+            return directReplies.reduce(
+                (acc, reply) => acc + 1 + countReplies(reply.id),
+                0
+            );
+        };
+
+        const totalReplies = countReplies(commentId);
+
+        return res.Ok({
+            data: totalReplies,
+            errorMessage: null,
+            success: true,
+        });
+    } catch (error: any) {
+        console.error("Erro ao contar respostas:", error.message);
+        return res.BadRequest({
+            data: null,
+            errorMessage: "Erro ao contar respostas.",
+            success: false,
+        });
+    }
+});
+
 const CommentaryController = router;
 export default CommentaryController;
