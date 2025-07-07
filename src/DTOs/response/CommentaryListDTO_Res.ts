@@ -3,6 +3,7 @@ export default interface CommentaryListDTO_Res {
   userId: string;
   text: string;
   createdAt: string;
+  editedAt?: string | null;
   parentId?: string | null;
   user: {
     displayName: string;

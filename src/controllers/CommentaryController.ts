@@ -70,6 +70,7 @@ router.get("/list/:petId", async (req, res) => {
                     userId: c.userId,
                     text: c.text,
                     createdAt: c.createdAt,
+                    editedAt: c.editedAt || null,
                     parentId: c.parentId || null,
                     user: {
                         displayName,
@@ -124,7 +125,9 @@ router.put("/edit", authorize, async (req, res) => {
             text: newText,
             userId: comment.userId,
             petId: comment.petId,
-            createdAt: comment.createdAt, // Mantém a data original
+            createdAt: comment.createdAt,
+            editedAt: new Date().toISOString(),
+            parentId: comment.parentId ?? null
         });
 
         return res.Ok({
@@ -198,7 +201,9 @@ router.get("/replies/:commentId", async (req, res) => {
             return replies.flatMap(reply => [reply, ...buildRepliesTree(reply.id)]);
         };
 
-        const replies = buildRepliesTree(commentId);
+        const replies = buildRepliesTree(commentId).sort((a, b) => {
+            return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        });
 
         const result: CommentaryListDTO_Res[] = await Promise.all(
             replies.map(async (c) => {
@@ -206,7 +211,6 @@ router.get("/replies/:commentId", async (req, res) => {
                 let photoURL = '';
                 let repliedToName = null;
 
-                // Nome de quem escreveu o comentário
                 try {
                     const userRecord = await admin.auth().getUser(c.userId);
                     displayName = userRecord.displayName || displayName;
@@ -215,7 +219,6 @@ router.get("/replies/:commentId", async (req, res) => {
                     console.warn(`Usuário ${c.userId} não encontrado no Firebase Auth.`);
                 }
 
-                // Nome da pessoa para quem a resposta foi enviada (comentário pai)
                 if (c.parentId) {
                     const parentComment = commentMap.get(c.parentId);
                     if (parentComment) {
@@ -233,12 +236,13 @@ router.get("/replies/:commentId", async (req, res) => {
                     userId: c.userId,
                     text: c.text,
                     createdAt: c.createdAt,
+                    editedAt: c.editedAt || null,
                     parentId: c.parentId || null,
                     user: {
                         displayName,
                         photoURL,
                     },
-                    repliedToName, // <-- novo campo
+                    repliedToName,
                 };
             })
         );
