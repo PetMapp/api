@@ -6,5 +6,6 @@ export default interface commentary extends fbEntity {
     petId: string,
     createdAt: string,
     editedAt?: string | null,
+    deletedAt?: string | null,
     parentId?: string | null;
 }

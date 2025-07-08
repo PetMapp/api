@@ -48,7 +48,7 @@ router.get("/list/:petId", async (req, res) => {
     try {
         const allComments = await fireservice.list<commentary>("commentaries");
         const petComments = allComments
-            .filter(c => c.petId === petId && !c.parentId)
+            .filter(c => c.petId === petId && !c.parentId && !c.deletedAt)
             .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
         // Obter dados de usuário para cada comentário
@@ -71,6 +71,7 @@ router.get("/list/:petId", async (req, res) => {
                     text: c.text,
                     createdAt: c.createdAt,
                     editedAt: c.editedAt || null,
+                    deletedAt: c.deletedAt || null,
                     parentId: c.parentId || null,
                     user: {
                         displayName,
@@ -167,7 +168,11 @@ router.delete("/remove", authorize, async (req, res) => {
                 success: false,
             });
 
-        await fireservice.remove("commentaries", data.commentaryId);
+        await fireservice.update<commentary>("commentaries", {
+            ...comment,
+            id: data.commentaryId,
+            deletedAt: new Date().toISOString()
+        });
 
         return res.Ok({
             data: null,
@@ -201,7 +206,9 @@ router.get("/replies/:commentId", async (req, res) => {
             return replies.flatMap(reply => [reply, ...buildRepliesTree(reply.id)]);
         };
 
-        const replies = buildRepliesTree(commentId).sort((a, b) => {
+        const replies = buildRepliesTree(commentId)
+        .filter(c => !c.deletedAt)
+        .sort((a, b) => {
             return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
         });
 
@@ -237,6 +244,7 @@ router.get("/replies/:commentId", async (req, res) => {
                     text: c.text,
                     createdAt: c.createdAt,
                     editedAt: c.editedAt || null,
+                    deletedAt: c.deletedAt || null,
                     parentId: c.parentId || null,
                     user: {
                         displayName,
@@ -273,7 +281,7 @@ router.get("/count-replies/:commentId", async (req, res) => {
 
         // Função recursiva para contar respostas
         const countReplies = (parentId: string): number => {
-            const directReplies = allComments.filter(c => c.parentId === parentId);
+            const directReplies = allComments.filter(c => c.parentId === parentId && !c.deletedAt);
             return directReplies.reduce(
                 (acc, reply) => acc + 1 + countReplies(reply.id),
                 0
@@ -295,6 +303,64 @@ router.get("/count-replies/:commentId", async (req, res) => {
             success: false,
         });
     }
+});
+
+// Buscar apenas comentários pai por ID
+router.get("/commentary/:id", async (req, res) => {
+  /**#swagger.summary = "Buscar um comentário pai por ID (ignora se for resposta)" */
+  const { id } = req.params;
+
+  try {
+    const comment = await fireservice.get<commentary>("commentaries", id);
+
+    // Se não existe, foi deletado ou tem parentId (ou seja, não é comentário pai)
+    if (!comment || comment.deletedAt || comment.parentId) {
+      return res.BadRequest({
+        data: null,
+        errorMessage: "Comentário não encontrado ou não é um comentário pai.",
+        success: false,
+      });
+    }
+
+    let displayName = 'Usuário desconhecido';
+    let photoURL = '';
+
+    try {
+      const userRecord = await admin.auth().getUser(comment.userId);
+      displayName = userRecord.displayName || displayName;
+      photoURL = userRecord.photoURL || '';
+    } catch (e) {
+      console.warn(`Usuário ${comment.userId} não encontrado no Firebase Auth.`);
+    }
+
+    const result: CommentaryListDTO_Res = {
+      id: comment.id,
+      userId: comment.userId,
+      text: comment.text,
+      createdAt: comment.createdAt,
+      editedAt: comment.editedAt || null,
+      deletedAt: comment.deletedAt || null,
+      parentId: comment.parentId || null,
+      user: {
+        displayName,
+        photoURL,
+      },
+    };
+
+    return res.Ok({
+      data: result,
+      errorMessage: null,
+      success: true,
+    });
+
+  } catch (error: any) {
+    console.error("Erro ao buscar comentário:", error.message);
+    return res.BadRequest({
+      data: null,
+      errorMessage: "Erro ao buscar comentário.",
+      success: false,
+    });
+  }
 });
 
 const CommentaryController = router;

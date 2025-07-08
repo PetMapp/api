@@ -691,6 +691,31 @@
           }
         }
       }
+    },
+    "/api/commentary/commentary/{id}": {
+      "get": {
+        "tags": [
+          "Commentary"
+        ],
+        "summary": "Buscar um comentário pai por ID (ignora se for resposta)",
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
     }
   },
   "security": [
