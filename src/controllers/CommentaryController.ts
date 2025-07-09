@@ -17,7 +17,7 @@ router.post("/create", authorize, async (req, res) => {
     const data = req.body as CreateCommentaryDTO_Req;
 
     try {
-        await fireservice.register<commentary>("commentaries", {
+        const newId = await fireservice.register<commentary>("commentaries", {
             userId: req.user!.uid,
             text: data.text,
             petId: data.petId,
@@ -26,7 +26,7 @@ router.post("/create", authorize, async (req, res) => {
         });
 
         return res.Ok({
-            data: null,
+            data: newId.id,
             errorMessage: null,
             success: true,
         });
@@ -207,10 +207,10 @@ router.get("/replies/:commentId", async (req, res) => {
         };
 
         const replies = buildRepliesTree(commentId)
-        .filter(c => !c.deletedAt)
-        .sort((a, b) => {
-            return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-        });
+            .filter(c => !c.deletedAt)
+            .sort((a, b) => {
+                return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+            });
 
         const result: CommentaryListDTO_Res[] = await Promise.all(
             replies.map(async (c) => {
@@ -306,61 +306,61 @@ router.get("/count-replies/:commentId", async (req, res) => {
 });
 
 // Buscar apenas comentários pai por ID
-router.get("/commentary/:id", async (req, res) => {
-  /**#swagger.summary = "Buscar um comentário pai por ID (ignora se for resposta)" */
-  const { id } = req.params;
-
-  try {
-    const comment = await fireservice.get<commentary>("commentaries", id);
-
-    // Se não existe, foi deletado ou tem parentId (ou seja, não é comentário pai)
-    if (!comment || comment.deletedAt || comment.parentId) {
-      return res.BadRequest({
-        data: null,
-        errorMessage: "Comentário não encontrado ou não é um comentário pai.",
-        success: false,
-      });
-    }
-
-    let displayName = 'Usuário desconhecido';
-    let photoURL = '';
+router.get("/:id", async (req, res) => {
+    /**#swagger.summary = "Buscar um comentário por ID (inclui respostas e pais)" */
+    const { id } = req.params;
 
     try {
-      const userRecord = await admin.auth().getUser(comment.userId);
-      displayName = userRecord.displayName || displayName;
-      photoURL = userRecord.photoURL || '';
-    } catch (e) {
-      console.warn(`Usuário ${comment.userId} não encontrado no Firebase Auth.`);
+        const comment = await fireservice.get<commentary>("commentaries", id);
+
+        // Se não existe ou foi deletado
+        if (!comment || comment.deletedAt) {
+            return res.BadRequest({
+                data: null,
+                errorMessage: "Comentário não encontrado ou foi deletado.",
+                success: false,
+            });
+        }
+
+        let displayName = 'Usuário desconhecido';
+        let photoURL = '';
+
+        try {
+            const userRecord = await admin.auth().getUser(comment.userId);
+            displayName = userRecord.displayName || displayName;
+            photoURL = userRecord.photoURL || '';
+        } catch (e) {
+            console.warn(`Usuário ${comment.userId} não encontrado no Firebase Auth.`);
+        }
+
+        const result: CommentaryListDTO_Res = {
+            id: comment.id,
+            userId: comment.userId,
+            text: comment.text,
+            createdAt: comment.createdAt,
+            editedAt: comment.editedAt || null,
+            deletedAt: comment.deletedAt || null,
+            parentId: comment.parentId || null,
+            user: {
+                displayName,
+                photoURL,
+            },
+        };
+
+        return res.Ok({
+            data: result,
+            errorMessage: null,
+            success: true,
+        });
+
+    } catch (error: any) {
+        console.error("Erro ao buscar comentário:", error.message);
+        return res.BadRequest({
+            data: null,
+            errorMessage: "Erro ao buscar comentário.",
+            success: false,
+        });
     }
-
-    const result: CommentaryListDTO_Res = {
-      id: comment.id,
-      userId: comment.userId,
-      text: comment.text,
-      createdAt: comment.createdAt,
-      editedAt: comment.editedAt || null,
-      deletedAt: comment.deletedAt || null,
-      parentId: comment.parentId || null,
-      user: {
-        displayName,
-        photoURL,
-      },
-    };
-
-    return res.Ok({
-      data: result,
-      errorMessage: null,
-      success: true,
-    });
-
-  } catch (error: any) {
-    console.error("Erro ao buscar comentário:", error.message);
-    return res.BadRequest({
-      data: null,
-      errorMessage: "Erro ao buscar comentário.",
-      success: false,
-    });
-  }
 });
 
 const CommentaryController = router;

@@ -692,12 +692,12 @@
         }
       }
     },
-    "/api/commentary/commentary/{id}": {
+    "/api/commentary/{id}": {
       "get": {
         "tags": [
           "Commentary"
         ],
-        "summary": "Buscar um comentário pai por ID (ignora se for resposta)",
+        "summary": "Buscar um comentário por ID (inclui respostas e pais)",
         "description": "",
         "parameters": [
           {
