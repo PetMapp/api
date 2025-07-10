@@ -302,7 +302,8 @@ router.get("/find/get/:id", async (req, res) => {
             localizacao: pet.localizacao,
             userId: pet.userId,
             petImage: image[0],
-            coleira: pet.coleira
+            coleira: pet.coleira,
+            createdAt: pet.createdAt
         } as DetailFindPetDTO_Res
     })
 

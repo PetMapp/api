@@ -716,6 +716,99 @@
           }
         }
       }
+    },
+    "/api/notification/create": {
+      "post": {
+        "tags": [
+          "Commentary"
+        ],
+        "summary": "Criar nova notificação",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/api/notification/mark-as-read/{notificationId}": {
+      "put": {
+        "tags": [
+          "Commentary"
+        ],
+        "summary": "Marcar notificação como lida",
+        "description": "",
+        "parameters": [
+          {
+            "name": "notificationId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/api/notification/mark-all-as-read": {
+      "put": {
+        "tags": [
+          "Commentary"
+        ],
+        "summary": "Marcar todas as notificações do usuário como lidas",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/api/notification/unread-count": {
+      "get": {
+        "tags": [
+          "Commentary"
+        ],
+        "summary": "Contar notificações não lidas",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/api/notification/list": {
+      "get": {
+        "tags": [
+          "Commentary"
+        ],
+        "summary": "Listar notificações do usuário autenticado",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
     }
   },
   "security": [

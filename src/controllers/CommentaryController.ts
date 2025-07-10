@@ -7,37 +7,74 @@ import CommentaryDeleteDTO_Req from "../DTOs/request/CommentaryDeleteDTO_Req";
 import CommentaryListDTO_Res from "../DTOs/response/CommentaryListDTO_Res";
 import CommentaryEditDTO_Req from "../DTOs/request/CommentaryEditDTO_Req";
 import { admin } from "../firebase";
+import NotificationService from "../services/notificationService";
+import CreateNotificationDTO_Req from "../DTOs/request/CreateNotificationDTO_Req";
 
 const router = express.Router();
 const fireservice = new FirebaseService();
+const notificationService = new NotificationService();
 
 // Criar novo comentário
 router.post("/create", authorize, async (req, res) => {
-    /**#swagger.summary = "Registrar novo comentário em um pet" */
-    const data = req.body as CreateCommentaryDTO_Req;
+  /**#swagger.summary = "Registrar novo comentário em um pet" */
+  const data = req.body as CreateCommentaryDTO_Req;
 
-    try {
-        const newId = await fireservice.register<commentary>("commentaries", {
-            userId: req.user!.uid,
-            text: data.text,
-            petId: data.petId,
-            createdAt: new Date().toISOString(),
-            parentId: data.parentId ?? null,
-        });
+  try {
+    const newId = await fireservice.register<commentary>("commentaries", {
+      userId: req.user!.uid,
+      text: data.text,
+      petId: data.petId,
+      createdAt: new Date().toISOString(),
+      parentId: data.parentId ?? null,
+    });
 
-        return res.Ok({
-            data: newId.id,
-            errorMessage: null,
-            success: true,
-        });
-    } catch (error: any) {
-        console.error("Erro ao registrar comentário:", error.message);
-        return res.BadRequest({
-            data: null,
-            errorMessage: "Erro ao registrar comentário.",
-            success: false,
-        });
+    const notificationService = new NotificationService();
+
+    if (data.parentId) {
+      // Caso seja resposta a outro comentário
+      const parentComment = await fireservice.get<commentary>("commentaries", data.parentId);
+
+      if (parentComment && parentComment.userId !== req.user!.uid) {
+        const noti: CreateNotificationDTO_Req = {
+          userId: parentComment.userId,
+          type: "reply",
+          relatedCommentId: newId.id,
+          fromUserId: req.user!.uid,
+          statusMessage: "Alguém respondeu seu comentário!",
+        };
+
+        await notificationService.createNotification(noti);
+      }
+    } else {
+      // Comentário direto na publicação → encontrar dono do pet
+      const pet = await fireservice.get<any>("pets", data.petId);
+
+      if (pet && pet.userId !== req.user!.uid) {
+        const noti: CreateNotificationDTO_Req = {
+          userId: pet.userId,
+          type: "comment_reply",
+          relatedCommentId: newId.id,
+          fromUserId: req.user!.uid,
+          statusMessage: "Alguém comentou no seu pet!",
+        };
+
+        await notificationService.createNotification(noti);
+      }
     }
+
+    return res.Ok({
+      data: newId.id,
+      errorMessage: null,
+      success: true,
+    });
+  } catch (error: any) {
+    console.error("Erro ao registrar comentário:", error.message);
+    return res.BadRequest({
+      data: null,
+      errorMessage: "Erro ao registrar comentário.",
+      success: false,
+    });
+  }
 });
 
 // Listar comentários de um pet
