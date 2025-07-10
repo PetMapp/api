@@ -7,4 +7,8 @@ export default interface NotificationListDTO_Res {
   statusMessage?: string;
   read: boolean;
   createdAt: string;
+  fromUser?: {
+    displayName: string;
+    photoURL: string | null;
+  };
 }

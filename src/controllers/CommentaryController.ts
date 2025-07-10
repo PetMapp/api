@@ -40,7 +40,7 @@ router.post("/create", authorize, async (req, res) => {
           type: "reply",
           relatedCommentId: newId.id,
           fromUserId: req.user!.uid,
-          statusMessage: "Alguém respondeu seu comentário!",
+          statusMessage: "Respondeu seu comentário!",
         };
 
         await notificationService.createNotification(noti);
@@ -55,7 +55,7 @@ router.post("/create", authorize, async (req, res) => {
           type: "comment_reply",
           relatedCommentId: newId.id,
           fromUserId: req.user!.uid,
-          statusMessage: "Alguém comentou no seu pet!",
+          statusMessage: "Comentou no seu pet!",
         };
 
         await notificationService.createNotification(noti);

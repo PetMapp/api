@@ -2,6 +2,7 @@ import express from "express";
 import authorize from "../middleware/authorize";
 import FirebaseService from "../services/FirebaseService";
 import notification from "../models/entities/notification";
+import { admin } from "../firebase";
 
 import CreateNotificationDTO_Req from "../DTOs/request/CreateNotificationDTO_Req";
 import NotificationListDTO_Res from "../DTOs/response/NotificationListDTO_Res";
@@ -134,23 +135,44 @@ router.get("/unread-count", authorize, async (req, res) => {
 
 // Listar notificações do usuário
 router.get("/list", authorize, async (req, res) => {
-  /**#swagger.summary = "Listar notificações do usuário autenticado" */
+  /**#swagger.summary = "Listar notificações do usuário autenticado com nome e foto do usuário" */
   try {
     const allNotifs = await fireservice.list<notification>("notifications");
     const userNotifs = allNotifs
       .filter(n => n.userId === req.user!.uid)
       .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
-    const response: NotificationListDTO_Res[] = userNotifs.map(n => ({
-      id: n.id,
-      userId: n.userId,
-      type: n.type,
-      relatedCommentId: n.relatedCommentId,
-      fromUserId: n.fromUserId,
-      statusMessage: n.statusMessage,
-      read: n.read,
-      createdAt: n.createdAt
-    }));
+    const response: NotificationListDTO_Res[] = [];
+
+    for (const notif of userNotifs) {
+      let displayName = 'Usuário';
+      let photoURL = null;
+
+      if (notif.fromUserId) {
+        try {
+          const userRecord = await admin.auth().getUser(notif.fromUserId);
+          displayName = userRecord.displayName || displayName;
+          photoURL = userRecord.photoURL || null;
+        } catch (e) {
+          console.warn(`Usuário ${notif.fromUserId} não encontrado no Firebase Auth.`);
+        }
+      }
+
+      response.push({
+        id: notif.id,
+        userId: notif.userId,
+        type: notif.type,
+        relatedCommentId: notif.relatedCommentId,
+        fromUserId: notif.fromUserId,
+        statusMessage: notif.statusMessage,
+        read: notif.read,
+        createdAt: notif.createdAt,
+        fromUser: {
+          displayName,
+          photoURL,
+        }
+      });
+    }
 
     return res.Ok({
       data: response,

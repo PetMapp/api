@@ -798,7 +798,7 @@
         "tags": [
           "Commentary"
         ],
-        "summary": "Listar notificações do usuário autenticado",
+        "summary": "Listar notificações do usuário autenticado com nome e foto do usuário",
         "description": "",
         "responses": {
           "200": {
