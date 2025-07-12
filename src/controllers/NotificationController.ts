@@ -7,6 +7,7 @@ import { admin } from "../firebase";
 import CreateNotificationDTO_Req from "../DTOs/request/CreateNotificationDTO_Req";
 import NotificationListDTO_Res from "../DTOs/response/NotificationListDTO_Res";
 import UnreadCountDTO_Res from "../DTOs/response/UnreadCountDTO_Res";
+import commentary from "../models/entities/commentary";
 
 const router = express.Router();
 const fireservice = new FirebaseService();
@@ -135,7 +136,7 @@ router.get("/unread-count", authorize, async (req, res) => {
 
 // Listar notificações do usuário
 router.get("/list", authorize, async (req, res) => {
-  /**#swagger.summary = "Listar notificações do usuário autenticado com nome e foto do usuário" */
+  /**#swagger.summary = "Listar notificações do usuário autenticado com nome, foto e ID do pet relacionado" */
   try {
     const allNotifs = await fireservice.list<notification>("notifications");
     const userNotifs = allNotifs
@@ -147,7 +148,9 @@ router.get("/list", authorize, async (req, res) => {
     for (const notif of userNotifs) {
       let displayName = 'Usuário';
       let photoURL = null;
+      let relatedPetId: string | undefined = undefined;
 
+      // Buscar dados do autor da ação
       if (notif.fromUserId) {
         try {
           const userRecord = await admin.auth().getUser(notif.fromUserId);
@@ -158,11 +161,24 @@ router.get("/list", authorize, async (req, res) => {
         }
       }
 
+      // Buscar o pet relacionado (via comentário)
+      if (notif.relatedCommentId) {
+        try {
+          const comment = await fireservice.get<commentary>("commentaries", notif.relatedCommentId);
+          if (comment && comment.petId) {
+            relatedPetId = comment.petId;
+          }
+        } catch (e) {
+          console.warn(`Comentário ${notif.relatedCommentId} não encontrado para notificação ${notif.id}`);
+        }
+      }
+
       response.push({
         id: notif.id,
         userId: notif.userId,
         type: notif.type,
-        relatedCommentId: notif.relatedCommentId,
+        relatedCommentId: notif.relatedCommentId ?? undefined,
+        relatedPetId,
         fromUserId: notif.fromUserId,
         statusMessage: notif.statusMessage,
         read: notif.read,

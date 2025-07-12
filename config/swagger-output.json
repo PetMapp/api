@@ -798,7 +798,7 @@
         "tags": [
           "Commentary"
         ],
-        "summary": "Listar notificações do usuário autenticado com nome e foto do usuário",
+        "summary": "Listar notificações do usuário autenticado com nome, foto e ID do pet relacionado",
         "description": "",
         "responses": {
           "200": {
