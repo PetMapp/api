@@ -4,7 +4,6 @@ import FirebaseService from "../src/services/FirebaseService";
 import pet from "../src/models/entities/pet";
 import { DecodedIdToken } from "firebase-admin/auth";
 import petLocation from "../src/models/entities/petLocation";
-import GoogleService from "../src/services/GoogleService";
 import path from "path";
 import fs from "fs";
 import axios from "axios";
@@ -42,12 +41,10 @@ jest.mock('../src/services/GoogleService', () => {
     }));
 });
 
-const MockGoogleService = GoogleService as jest.MockedClass<typeof GoogleService>;
-
 jest.mock('../src/services/FirebaseService');
 const MockFirebaseService = FirebaseService as jest.MockedClass<typeof FirebaseService>;
 
-describe('Testando rota GET /api/pet/myPets', () => {
+describe('GET /api/pet/myPets', () => {
     it('deve retornar os pets do usuário logado', async () => {
         MockFirebaseService.prototype.list.mockResolvedValue([
             { id: '1', userId: 'usuario123', apelido: 'Rex', localizacao: '', descricao: '', status: '', coleira: false, createdAt: '' },
@@ -63,7 +60,7 @@ describe('Testando rota GET /api/pet/myPets', () => {
     });
 });
 
-describe('Testando rota GET /api/pet/location/all', () => {
+describe('GET /api/pet/location/all', () => {
     it('deve retornar todas as localizações de pets', async () => {
         MockFirebaseService.prototype.list.mockResolvedValue([
             { lat: -23.5505, lng: -46.6333, petId: '1' },
@@ -79,7 +76,7 @@ describe('Testando rota GET /api/pet/location/all', () => {
     });
 });
 
-describe('Testando rota PUT /api/pet/find/update', () => {
+describe('PUT /api/pet/find/update', () => {
     it('deve atualizar informações do pet', async () => {
         MockFirebaseService.prototype.get.mockResolvedValueOnce({
             id: '1',
@@ -151,14 +148,14 @@ describe('Testando rota PUT /api/pet/find/update', () => {
         expect(response.body.success).toBe(false);
         expect(response.body.errorMessage).toBe("Você não é o dono do pet para realizar alterações.");
     });
+});
 
+describe('POST /api/pet/find/register', () => {
     it('deve cadastrar um novo pet com imagem e localização', async () => {
-        // Mock da resposta da geocodificação
         jest.spyOn(axios, 'get').mockResolvedValueOnce({
             data: [{ lat: "-23.5", lon: "-46.6" }]
         });
 
-        // Mock Firebase
         MockFirebaseService.prototype.register
             .mockResolvedValueOnce({ id: "pet123" }) // pet
             .mockResolvedValueOnce({ id: "pet123" });
@@ -184,12 +181,15 @@ describe('Testando rota PUT /api/pet/find/update', () => {
         const response = await request(app)
             .post("/api/pet/find/register")
             .set("Authorization", "Bearer tokenFake")
-            .field("apelido", "Bolt"); // faltando outros campos
+            .field("apelido", "Bolt");
 
         expect(response.statusCode).toBe(400);
         expect(response.body.success).toBe(false);
     });
+});
 
+// ROTA: GET /api/pet/find/get/:id
+describe('GET /api/pet/find/get/:id', () => {
     it("deve retornar detalhes de um pet por ID", async () => {
         MockFirebaseService.prototype.get.mockResolvedValueOnce({
             id: "1",
@@ -214,7 +214,9 @@ describe('Testando rota PUT /api/pet/find/update', () => {
         expect(response.statusCode).toBe(200);
         expect(response.body.data.apelido).toBe("Tobby");
     });
+});
 
+describe('DELETE /api/pet/find/remove', () => {
     it("deve remover um pet e sua localização", async () => {
         MockFirebaseService.prototype.get.mockResolvedValueOnce({
             id: "1",
@@ -265,7 +267,9 @@ describe('Testando rota PUT /api/pet/find/update', () => {
         expect(response.body.success).toBe(false);
         expect(response.body.errorMessage).toBe("você não é o dono do pet para realizar alterações.");
     });
+});
 
+describe('POST /api/pet/locateByLatLng', () => {
     it("deve retornar endereço pelo lat/lng", async () => {
         (axios.get as jest.Mock).mockResolvedValueOnce({
             data: {
@@ -293,7 +297,9 @@ describe('Testando rota PUT /api/pet/find/update', () => {
         expect(response.statusCode).toBe(500);
         expect(response.body.success).toBe(false);
     });
+});
 
+describe('GET /api/pet/find/search', () => {
     it("deve buscar pets com base em texto", async () => {
         MockFirebaseService.prototype.list.mockResolvedValue([
             { id: "1", apelido: "Bolt", descricao: "rápido", localizacao: "Rua 1", userId: "usuario123", coleira: true, createdAt: "" },
