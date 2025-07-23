@@ -1,3 +1,3 @@
-export default interface tbEntity {
+export default interface fbEntity {
     id: string
 }

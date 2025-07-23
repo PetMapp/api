@@ -1,4 +1,4 @@
-import fbEntity from "./fbEntity"
+import fbEntity from "./fbEntity";
 
 export default interface pet extends fbEntity {
     userId: string

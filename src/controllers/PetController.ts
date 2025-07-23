@@ -56,7 +56,6 @@ router.get("/location/all", async (req, res) => {
             ]
         }
     } */
-    console.log({ req });
     var list: petLocation[] = await fireservice.list<petLocation>("petLocations");
     // var locate: petLocationDTO_Res[] = [];
     var bucket = admin.storage().bucket();
@@ -79,7 +78,6 @@ router.get("/location/all", async (req, res) => {
 
     var locate: petLocationDTO_Res[] = await Promise.all(locatePromises);
 
-    console.log();
     return res.Ok({
         success: true,
         errorMessage: null,
@@ -87,27 +85,37 @@ router.get("/location/all", async (req, res) => {
     })
 })
 
-
 router.put("/find/update", authorize, async (req, res) => {
     /*#swagger.summary = "Alterar informações/localização do Pet." */
     const data = req.body as PetFindEditDTO_Req;
 
-    var pet = await fireservice.get<pet>("pets", data.petId);
+    const pet = await fireservice.get<pet>("pets", data.petId);
 
-    if (!pet) return res.BadRequest({
-        data: null,
-        errorMessage: "Pet não encontrada.",
-        success: false
-    });
-
-    if (req.user!.uid !== pet.userId)
+    if (!pet) {
         return res.BadRequest({
             data: null,
-            errorMessage: "você não é o dono do pet para realizar alterações.",
+            errorMessage: "Pet não encontrado.",
             success: false
-        })
+        });
+    }
 
-    var newLocation = await googleService.Geocode.GetByAddress(data.localicacao);
+    if (req.user!.uid !== pet.userId) {
+        return res.BadRequest({
+            data: null,
+            errorMessage: "Você não é o dono do pet para realizar alterações.",
+            success: false
+        });
+    }
+
+    const nominatimUrl = `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(data.localicacao)}`;
+    const responseGeo = await axios.get(nominatimUrl, {
+        headers: { 'User-Agent': 'mapets/1.0' }
+    });
+
+    const location = responseGeo.data[0];
+    if (!location) {
+        return res.status(400).send("Localização (lat,lng) não foi encontrada.");
+    }
 
     await fireservice.update<pet>("pets", {
         descricao: data.descricao,
@@ -118,35 +126,33 @@ router.put("/find/update", authorize, async (req, res) => {
         coleira: pet.coleira,
         apelido: pet.apelido,
         createdAt: new Date().toISOString()
-    })
+    });
 
-    var petLocationInstance = await fireservice.find<petLocation>("petLocations", {
+    const petLocationInstance = await fireservice.find<petLocation>("petLocations", {
         petId: { operator: "==", value: data.petId },
-    })
+    });
 
     if (!petLocationInstance) {
         await fireservice.register<petLocation>("petLocations", {
-            lat: newLocation?.results[0].geometry.location.lat!,
-            lng: newLocation?.results[0].geometry.location.lng!,
+            lat: parseFloat(location.lat),
+            lng: parseFloat(location.lon),
             petId: data.petId
-        })
+        });
     } else {
         await fireservice.update<petLocation>("petLocations", {
             id: petLocationInstance.id,
-            lat: newLocation?.results[0].geometry.location.lat!,
-            lng: newLocation?.results[0].geometry.location.lng!,
+            lat: parseFloat(location.lat),
+            lng: parseFloat(location.lon),
             petId: data.petId
-        })
+        });
     }
-
-
 
     return res.Ok({
         data: {},
         errorMessage: null,
         success: true
-    })
-})
+    });
+});
 
 router.delete("/find/remove", authorize, async (req, res) => {
     const data = req.body as PetFindDeleteDTO_Res;
@@ -160,7 +166,7 @@ router.delete("/find/remove", authorize, async (req, res) => {
             success: false
         });
 
-    if (petInstance.userId === req.user?.uid)
+    if (petInstance.userId !== req.user?.uid)
         return res.BadRequest({
             data: null,
             errorMessage: "você não é o dono do pet para realizar alterações.",
@@ -251,15 +257,28 @@ router.post("/find/register", authorize, upload.single("img"), async (req, res) 
 router.post("/locateByLatLng", authorize, async (req, res) => {
     const data = req.body as LocateByLatLngDTO_Req;
 
-    var locate = await googleService.Geocode.GetByLatLng(data.lat, data.lng);
+    try {
+        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${data.lat}&lon=${data.lng}`;
+        const response = await axios.get(url, {
+            headers: { 'User-Agent': 'mapets/1.0' }
+        });
 
-    return res.Ok({
-        data: locate?.results[0].formatted_address,
-        errorMessage: null,
-        success: true
-    })
+        const address = response.data?.display_name;
 
-})
+        return res.Ok({
+            data: address ?? null,
+            errorMessage: null,
+            success: true
+        });
+    } catch (error: any) {
+        console.error("Erro ao localizar endereço:", error.message);
+        return res.status(500).json({
+            data: null,
+            errorMessage: "Erro ao localizar endereço pelo lat/lng.",
+            success: false
+        });
+    }
+});
 
 
 router.get("/find/get/:id", async (req, res) => {

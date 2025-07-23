@@ -49,11 +49,15 @@ appHandle.use('/notification', notificationController
 
 
 app.use("/api", appHandle);
-generateSwagger().then(() => {
-  app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
-  app.listen(port, () => {
-    console.log(`Servidor rodando na porta ${port}. Documentação disponível em http://localhost:3000/docs`);
+if (process.env.NODE_ENV !== 'test') {
+  generateSwagger().then(() => {
+    app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerFile));
+    app.listen(port, () => {
+      console.log(`Servidor rodando na porta ${port}. Documentação disponível em http://localhost:3000/docs`);
+    });
   });
-})
+}
 
 exports.api = https.onRequest(app);
+
+export default app;
