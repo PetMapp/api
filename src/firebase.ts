@@ -20,4 +20,3 @@ export const started = () => {
 };
 
 export { admin, db, auth };
-export default started;

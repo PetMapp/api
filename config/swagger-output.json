@@ -67,6 +67,7 @@
         "tags": [
           "Auth"
         ],
+        "summary": "Lista todos os usuários do Firestore.",
         "description": "",
         "responses": {
           "200": {

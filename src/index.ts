@@ -11,7 +11,7 @@ import { badRequestMiddleware, responseMiddleware } from './middleware/responseM
 import cors from 'cors';
 import { https } from 'firebase-functions/v2';
 import './firebase'; // Importa e inicializa o Firebase antes de qualquer outra coisa.
-import started from './firebase';
+import { started } from './firebase';
 started();
 
 
