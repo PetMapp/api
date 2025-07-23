@@ -20,6 +20,16 @@ router.post("/create", authorize, async (req, res) => {
   const data = req.body as CreateCommentaryDTO_Req;
 
   try {
+    const pet = await fireservice.get<any>("pets", data.petId);
+
+    if (!pet) {
+      return res.status(404).json({
+        success: false,
+        errorMessage: "Pet não encontrado",
+        data: null,
+      });
+    }
+
     const newId = await fireservice.register<commentary>("commentaries", {
       userId: req.user!.uid,
       text: data.text,
