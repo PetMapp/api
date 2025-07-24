@@ -516,10 +516,10 @@
             "schema": {
               "type": "object",
               "properties": {
-                "text": {
+                "petId": {
                   "example": "any"
                 },
-                "petId": {
+                "text": {
                   "example": "any"
                 },
                 "parentId": {
@@ -535,6 +535,9 @@
           },
           "400": {
             "description": "Bad Request"
+          },
+          "404": {
+            "description": "Not Found"
           }
         }
       }
