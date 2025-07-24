@@ -7,5 +7,8 @@ export default interface pet extends fbEntity {
     descricao: string
     status: string
     coleira: boolean,
-    createdAt: string
+    createdAt: string,
+    isMissing?: boolean;
+    missingSince?: string | null;
+    lastSeenLocation?: string | null;
 }

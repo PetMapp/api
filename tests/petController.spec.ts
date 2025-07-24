@@ -7,6 +7,7 @@ import petLocation from "../src/models/entities/petLocation";
 import path from "path";
 import fs from "fs";
 import axios from "axios";
+import { getDistanceFromLatLonInKm } from "../src/utils/distance";
 
 jest.mock('../src/middleware/authorize', () => {
     return jest.fn((req, res, next) => {
@@ -177,6 +178,45 @@ describe('POST /api/pet/find/register', () => {
         expect(response.body.message).toBe("Pet cadastrado com sucesso!");
     });
 
+    it('deve cadastrar um novo pet marcado como perdido', async () => {
+        jest.spyOn(axios, 'get').mockResolvedValueOnce({
+            data: [{ lat: "-23.5", lon: "-46.6" }]
+        });
+
+        MockFirebaseService.prototype.register
+            .mockResolvedValueOnce({ id: "pet123" })
+            .mockResolvedValueOnce({ id: "loc123" });
+
+        const imagePath = path.resolve(__dirname, "mocks/pet.png");
+        const imageBuffer = fs.readFileSync(imagePath);
+
+        const response = await request(app)
+            .post("/api/pet/find/register")
+            .set("Authorization", "Bearer tokenFake")
+            .attach("img", imageBuffer, "pet.png")
+            .field("apelido", "Max")
+            .field("descricao", "Sumiu no parque")
+            .field("status", "Perdido")
+            .field("coleira", "false")
+            .field("localizacao", "Praça Central")
+            .field("isMissing", "true")
+            .field("missingSince", "2025-07-01")
+            .field("lastSeenLocation", "Rua das Árvores");
+
+        expect(response.statusCode).toBe(201);
+        expect(response.body.message).toBe("Pet cadastrado com sucesso!");
+
+        expect(MockFirebaseService.prototype.register).toHaveBeenCalledWith(
+            expect.stringContaining("pets"),
+            expect.objectContaining({
+                apelido: "Max",
+                isMissing: true,
+                missingSince: "2025-07-01",
+                lastSeenLocation: "Rua das Árvores"
+            })
+        );
+    });
+
     it('não deve cadastrar pet se faltar campo obrigatório', async () => {
         const response = await request(app)
             .post("/api/pet/find/register")
@@ -313,5 +353,130 @@ describe('GET /api/pet/find/search', () => {
         expect(response.statusCode).toBe(200);
         expect(response.body.data.length).toBe(1);
         expect(response.body.data[0].apelido).toBe("Bolt");
+    });
+});
+
+describe('getDistanceFromLatLonInKm', () => {
+    it('deve retornar 0 para mesma coordenada', () => {
+        const distance = getDistanceFromLatLonInKm(-23.5505, -46.6333, -23.5505, -46.6333);
+        expect(distance).toBeCloseTo(0, 5);
+    });
+
+    it('deve calcular distância entre São Paulo e Rio de Janeiro', () => {
+        const spLat = -23.5505;
+        const spLng = -46.6333;
+        const rioLat = -22.9068;
+        const rioLng = -43.1729;
+
+        const distance = getDistanceFromLatLonInKm(spLat, spLng, rioLat, rioLng);
+
+        // A distância real é cerca de 357 km
+        expect(distance).toBeGreaterThan(350);
+        expect(distance).toBeLessThan(370);
+    });
+
+    it('deve calcular corretamente entre dois pontos próximos (raio curto)', () => {
+        const lat1 = -23.5500;
+        const lng1 = -46.6300;
+        const lat2 = -23.5510;
+        const lng2 = -46.6310;
+
+        const distance = getDistanceFromLatLonInKm(lat1, lng1, lat2, lng2);
+        expect(distance).toBeGreaterThan(0);
+        expect(distance).toBeLessThan(0.2);
+    });
+});
+
+describe('GET /api/pet/petFinder/list', () => {
+    it('deve retornar pets desaparecidos próximos ao usuário', async () => {
+        // Mock da lista de pets
+        MockFirebaseService.prototype.list
+            .mockImplementationOnce(() => Promise.resolve([
+                {
+                    id: 'pet1',
+                    userId: 'usuario456',
+                    apelido: 'Rex',
+                    descricao: 'Fugiu ontem',
+                    localizacao: 'Rua 1',
+                    isMissing: true,
+                    createdAt: '',
+                }
+            ])) // 1ª chamada: pets
+            .mockImplementationOnce(() => Promise.resolve([
+                {
+                    id: 'loc1',
+                    petId: 'pet1',
+                    lat: -23.5505,
+                    lng: -46.6333,
+                }
+            ])); // 2ª chamada: petLocations
+
+        // Mock do Firebase Storage
+        const mockGetSignedUrl = jest.fn().mockResolvedValue(['https://storage.fake.url/pet1-thumb.jpg']);
+        const mockFile = { getSignedUrl: mockGetSignedUrl };
+        const mockBucket = { file: () => mockFile };
+        jest.spyOn(require('firebase-admin').storage(), 'bucket').mockReturnValue(mockBucket as any);
+
+        const response = await request(app)
+            .get('/api/pet/petFinder/list')
+            .set('Authorization', 'Bearer tokenFake')
+            .query({
+                lat: -23.5505,
+                lng: -46.6333,
+                radius: 10
+            });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(response.body.data.length).toBe(1);
+        expect(response.body.data[0].apelido).toBe('Rex');
+        expect(response.body.data[0].imageUrl).toContain('https://storage.fake.url');
+    });
+
+    it('deve retornar array vazio se não houver pets dentro do raio', async () => {
+        MockFirebaseService.prototype.list
+            .mockImplementationOnce(() => Promise.resolve([
+                {
+                    id: 'pet1',
+                    userId: 'usuario456',
+                    apelido: 'Rex',
+                    descricao: 'Fugiu ontem',
+                    localizacao: 'Rua 1',
+                    isMissing: true,
+                    createdAt: '',
+                }
+            ]))
+            .mockImplementationOnce(() => Promise.resolve([
+                {
+                    id: 'loc1',
+                    petId: 'pet1',
+                    lat: -21.0, // longe do usuário
+                    lng: -43.0,
+                }
+            ]));
+
+        const response = await request(app)
+            .get('/api/pet/petFinder/list')
+            .set('Authorization', 'Bearer tokenFake')
+            .query({
+                lat: -23.5505,
+                lng: -46.6333,
+                radius: 1
+            });
+
+        expect(response.statusCode).toBe(200);
+        expect(response.body.success).toBe(true);
+        expect(response.body.data).toHaveLength(0);
+    });
+
+    it('deve retornar erro se faltar lat/lng', async () => {
+        const response = await request(app)
+            .get('/api/pet/petFinder/list')
+            .set('Authorization', 'Bearer tokenFake')
+            .query({});
+
+        expect(response.statusCode).toBe(400);
+        expect(response.body.success).toBe(false);
+        expect(response.body.errorMessage).toBe("Latitude e longitude são obrigatórias.");
     });
 });

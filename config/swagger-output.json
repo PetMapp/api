@@ -261,6 +261,15 @@
                 },
                 "coleira": {
                   "example": "any"
+                },
+                "isMissing": {
+                  "example": "any"
+                },
+                "missingSince": {
+                  "example": "any"
+                },
+                "lastSeenLocation": {
+                  "example": "any"
                 }
               }
             }
@@ -366,127 +375,35 @@
         }
       }
     },
-    "/api/post/{id}": {
+    "/api/pet/petFinder/list": {
       "get": {
         "tags": [
-          "Post"
+          "Pet"
         ],
-        "summary": "Retorna um post específico.",
+        "summary": "Retorna pets desaparecidos próximos ao usuário",
         "description": "",
         "parameters": [
           {
-            "name": "id",
-            "in": "path",
+            "name": "lat",
+            "in": "query",
+            "description": "Latitude do usuário",
             "required": true,
             "type": "string"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
           },
-          "400": {
-            "description": "Bad Request"
-          }
-        }
-      }
-    },
-    "/api/post/create": {
-      "post": {
-        "tags": [
-          "Post"
-        ],
-        "summary": "Criar um post.",
-        "description": "",
-        "parameters": [
           {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "titulo": {
-                  "example": "any"
-                },
-                "descricao": {
-                  "example": "any"
-                },
-                "coleira": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
+            "name": "lng",
+            "in": "query",
+            "description": "Longitude do usuário",
+            "required": true,
+            "type": "string"
           },
-          "400": {
-            "description": "Bad Request"
-          }
-        }
-      }
-    },
-    "/api/post/update": {
-      "put": {
-        "tags": [
-          "Post"
-        ],
-        "summary": "Alterar um post.",
-        "description": "",
-        "parameters": [
           {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "postId": {
-                  "example": "any"
-                },
-                "titulo": {
-                  "example": "any"
-                },
-                "descricao": {
-                  "example": "any"
-                },
-                "coleira": {
-                  "example": "any"
-                }
-              }
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          },
-          "400": {
-            "description": "Bad Request"
-          }
-        }
-      }
-    },
-    "/api/post/delete": {
-      "delete": {
-        "tags": [
-          "Post"
-        ],
-        "summary": "Deletar um post.",
-        "description": "",
-        "parameters": [
-          {
-            "name": "body",
-            "in": "body",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "postId": {
-                  "example": "any"
-                }
-              }
-            }
+            "name": "radius",
+            "in": "query",
+            "description": "Raio em km",
+            "required": false,
+            "default": 5,
+            "type": "string"
           }
         ],
         "responses": {

@@ -1,22 +1,21 @@
 import express from "express";
+import axios from "axios";
+import multer from 'multer';
+import { admin } from "../firebase";
+import authorize from "../middleware/authorize";
 import FirebaseService from "../services/FirebaseService";
 import pet from "../models/entities/pet";
-import RegisterFindPetDTO_Req from "../DTOs/request/RegisterFindPetDTO_Req";
-import authorize from "../middleware/authorize";
-import GoogleService from "../services/GoogleService";
 import petLocation from "../models/entities/petLocation";
+import RegisterFindPetDTO_Req from "../DTOs/request/RegisterFindPetDTO_Req";
 import PetFindEditDTO_Req from "../DTOs/request/PetFindEditDTO_Req";
 import PetFindDeleteDTO_Res from "../DTOs/request/PetFindDeleteDTO_Res";
 import DetailFindPetDTO_Res from "../DTOs/response/DetailFindPetDTO_Res";
-const router = express.Router();
-import multer from 'multer';
-import { admin } from "../firebase";
 import petLocationDTO_Res from "../DTOs/response/PetLocationDTO_Res";
 import LocateByLatLngDTO_Req from "../DTOs/request/LocateByLatLngDTO_Req";
-import axios from "axios";
+import { getDistanceFromLatLonInKm } from "../utils/distance";
 
+const router = express.Router();
 var fireservice = new FirebaseService();
-var googleService = new GoogleService();
 
 var storage = multer.memoryStorage();
 var upload = multer({ storage });
@@ -221,8 +220,11 @@ router.post("/find/register", authorize, upload.single("img"), async (req, res) 
             localizacao: data.localizacao,
             descricao: data.descricao,
             status: data.status,
-            coleira: data.coleira == "true",
-            createdAt: new Date().toISOString()
+            coleira: data.coleira === "true",
+            createdAt: new Date().toISOString(),
+            isMissing: data.isMissing === "true",
+            missingSince: data.missingSince ?? null,
+            lastSeenLocation: data.lastSeenLocation ?? null
         });
 
         // Registro da localização
@@ -232,14 +234,12 @@ router.post("/find/register", authorize, upload.single("img"), async (req, res) 
             petId: newPet.id
         });
 
-        // Upload da imagem para o Firebase Storage
+        // Upload da imagem
         const bk = admin.storage().bucket();
-        const fileName = `pets/${newPet.id}/thumb`; // Corrigido com crase
+        const fileName = `pets/${newPet.id}/thumb`;
         const firebaseFile = bk.file(fileName);
         await firebaseFile.save(file.buffer, {
-            metadata: {
-                contentType: file.mimetype
-            }
+            metadata: { contentType: file.mimetype }
         });
 
         return res.status(201).json({ message: 'Pet cadastrado com sucesso!' });
@@ -406,7 +406,80 @@ router.get("/find/search", authorize, async (req, res) => {
     }
 });
 
+router.get("/petFinder/list", authorize, async (req, res) => {
+    /**
+     * #swagger.summary = "Retorna pets desaparecidos próximos ao usuário"
+     * #swagger.parameters['lat'] = { in: 'query', description: 'Latitude do usuário', required: true }
+     * #swagger.parameters['lng'] = { in: 'query', description: 'Longitude do usuário', required: true }
+     * #swagger.parameters['radius'] = { in: 'query', description: 'Raio em km', required: false, default: 5 }
+     */
+    const { lat, lng, radius } = req.query;
 
+    if (!lat || !lng) {
+        return res.BadRequest({
+            data: null,
+            errorMessage: "Latitude e longitude são obrigatórias.",
+            success: false
+        });
+    }
+
+    const userLat = parseFloat(lat as string);
+    const userLng = parseFloat(lng as string);
+    const searchRadius = parseFloat(radius as string) || 5;
+
+    try {
+        const allPets: pet[] = await fireservice.list<pet>("pets");
+        const allLocations: petLocation[] = await fireservice.list<petLocation>("petLocations");
+
+        const missingPets = allPets.filter(p => p.isMissing); // só pets desaparecidos
+
+        const petsNearby = await Promise.all(
+            missingPets.map(async (pet) => {
+                const location = allLocations.find(loc => loc.petId === pet.id);
+                if (!location) return null;
+
+                const distance = getDistanceFromLatLonInKm(userLat, userLng, location.lat, location.lng);
+                if (distance > searchRadius) return null;
+
+                // Imagem
+                const bucket = admin.storage().bucket();
+                const file = bucket.file(`pets/${pet.id}/thumb`);
+                const imageUrl = await file.getSignedUrl({
+                    expires: Date.now() + 60 * 60 * 1000,
+                    action: "read",
+                    version: "v4"
+                });
+
+                return {
+                    petId: pet.id,
+                    apelido: pet.apelido,
+                    descricao: pet.descricao,
+                    localizacao: pet.localizacao,
+                    lat: location.lat,
+                    lng: location.lng,
+                    imageUrl: imageUrl[0],
+                    distanciaKm: distance.toFixed(2)
+                };
+            })
+        );
+
+        const filteredPets = petsNearby.filter(p => p !== null);
+
+        return res.Ok({
+            success: true,
+            errorMessage: null,
+            data: filteredPets
+        });
+
+    } catch (error: any) {
+        console.error("Erro ao listar pets desaparecidos:", error.message);
+        return res.status(500).json({
+            data: null,
+            errorMessage: "Erro interno ao buscar pets desaparecidos.",
+            success: false
+        });
+    }
+});
 
 const PetController = router;
 export default PetController;

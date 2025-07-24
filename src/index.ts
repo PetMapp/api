@@ -1,7 +1,6 @@
 import express from 'express';
 import AuthenticationController from './controllers/AuthController';
 import PetController from './controllers/PetController';
-import PostController from './controllers/PostController';
 import CommentaryController from './controllers/CommentaryController';
 import notificationController from './controllers/NotificationController';
 import swaggerUi from 'swagger-ui-express';
@@ -34,10 +33,6 @@ appHandle.use('/auth', AuthenticationController
 appHandle.use('/pet', PetController
   /*#swagger.tags = ["Pet"]*/
 );
-
-appHandle.use('/post', PostController
-  /*#swagger.tags = ["Post"]*/
-)
 
 appHandle.use('/commentary', CommentaryController
   /*#swagger.tags = ["Commentary"]*/
