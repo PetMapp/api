@@ -40,49 +40,38 @@ var upload = multer({ storage });
 // })
 
 router.get("/location/all", async (req, res) => {
-    /*#swagger.summary = "Lista todas as localizações dos pets" */
-    /*#swagger.responses[200] = {
-        description: 'Lista de pets no mapa!',
-        schema: {
-            success: true,
-            errorMessage: "",
-            data: [
-                    {
-                        lat: -42.23099433,
-                        lng: -8.234699818,
-                        petId: "Elsndsdasosd8w"
-                    }
-            ]
-        }
-    } */
-    var list: petLocation[] = await fireservice.list<petLocation>("petLocations");
-    // var locate: petLocationDTO_Res[] = [];
-    var bucket = admin.storage().bucket();
+    /*#swagger.summary = "Lista todas as localizações dos pets, incluindo se estão desaparecidos" */
+    const locations: petLocation[] = await fireservice.list<petLocation>("petLocations");
+    const pets: pet[] = await fireservice.list<pet>("pets");
+    const bucket = admin.storage().bucket();
 
-    const locatePromises = list.map(async (i) => {
-        var file = bucket.file(`pets/${i.petId}/thumb`);
-        var image = await file.getSignedUrl({
+    const locatePromises = locations.map(async loc => {
+        const petEntity = pets.find(p => p.id === loc.petId);
+        const file = bucket.file(`pets/${loc.petId}/thumb`);
+        const [url] = await file.getSignedUrl({
             expires: Date.now() + 60 * 60 * 1000,
             action: "read",
-            version: "v4"
+            version: "v4",
         });
 
         return {
-            lat: i.lat,
-            lng: i.lng,
-            petId: i.petId,
-            petImage: image[0] ?? ""
-        };
-    })
+            lat: loc.lat,
+            lng: loc.lng,
+            petId: loc.petId,
+            petImage: url || "",
+            isMissing: petEntity?.isMissing ?? false,
+        } as petLocationDTO_Res;
+    });
 
-    var locate: petLocationDTO_Res[] = await Promise.all(locatePromises);
+    const locate: petLocationDTO_Res[] = await Promise.all(locatePromises);
 
     return res.Ok({
         success: true,
         errorMessage: null,
         data: locate
-    })
-})
+    });
+});
+
 
 router.put("/find/update", authorize, async (req, res) => {
     /*#swagger.summary = "Alterar informações/localização do Pet." */

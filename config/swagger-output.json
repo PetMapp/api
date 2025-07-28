@@ -115,47 +115,11 @@
         "tags": [
           "Pet"
         ],
-        "summary": "Lista todas as localizações dos pets",
+        "summary": "Lista todas as localizações dos pets, incluindo se estão desaparecidos",
         "description": "",
         "responses": {
           "200": {
-            "description": "Lista de pets no mapa!",
-            "schema": {
-              "type": "object",
-              "properties": {
-                "success": {
-                  "type": "boolean",
-                  "example": true
-                },
-                "errorMessage": {
-                  "type": "string",
-                  "example": ""
-                },
-                "data": {
-                  "type": "array",
-                  "items": {
-                    "type": "object",
-                    "properties": {
-                      "lat": {
-                        "type": "number",
-                        "example": -42.23099433
-                      },
-                      "lng": {
-                        "type": "number",
-                        "example": -8.234699818
-                      },
-                      "petId": {
-                        "type": "string",
-                        "example": "Elsndsdasosd8w"
-                      }
-                    }
-                  }
-                }
-              },
-              "xml": {
-                "name": "main"
-              }
-            }
+            "description": "OK"
           },
           "400": {
             "description": "Bad Request"
