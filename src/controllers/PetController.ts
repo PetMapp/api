@@ -311,7 +311,8 @@ router.get("/find/get/:id", async (req, res) => {
             userId: pet.userId,
             petImage: image[0],
             coleira: pet.coleira,
-            createdAt: pet.createdAt
+            createdAt: pet.createdAt,
+            isMissing: pet.isMissing
         } as DetailFindPetDTO_Res
     })
 
@@ -420,7 +421,7 @@ router.get("/petFinder/list", authorize, async (req, res) => {
         const allPets: pet[] = await fireservice.list<pet>("pets");
         const allLocations: petLocation[] = await fireservice.list<petLocation>("petLocations");
 
-        const missingPets = allPets.filter(p => p.isMissing); // só pets desaparecidos
+        const missingPets = allPets.filter(p => p.isMissing);
 
         const petsNearby = await Promise.all(
             missingPets.map(async (pet) => {
