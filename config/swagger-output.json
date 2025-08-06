@@ -21,9 +21,6 @@
   "paths": {
     "/api/auth/register": {
       "post": {
-        "tags": [
-          "Auth"
-        ],
         "summary": "Registra um usuário.",
         "description": "",
         "parameters": [
@@ -64,9 +61,6 @@
     },
     "/api/auth/users": {
       "get": {
-        "tags": [
-          "Auth"
-        ],
         "summary": "Lista todos os usuários do Firestore.",
         "description": "",
         "responses": {
@@ -81,9 +75,6 @@
     },
     "/api/auth/user/{id}": {
       "get": {
-        "tags": [
-          "Auth"
-        ],
         "summary": "Busca um usuário pelo ID.",
         "description": "",
         "parameters": [
@@ -112,9 +103,6 @@
     },
     "/api/pet/location/all": {
       "get": {
-        "tags": [
-          "Pet"
-        ],
         "summary": "Lista todas as localizações dos pets, incluindo se estão desaparecidos",
         "description": "",
         "responses": {
@@ -129,9 +117,6 @@
     },
     "/api/pet/find/update": {
       "put": {
-        "tags": [
-          "Pet"
-        ],
         "summary": "Alterar informações/localização do Pet.",
         "description": "",
         "parameters": [
@@ -169,9 +154,6 @@
     },
     "/api/pet/find/remove": {
       "delete": {
-        "tags": [
-          "Pet"
-        ],
         "description": "",
         "parameters": [
           {
@@ -199,9 +181,6 @@
     },
     "/api/pet/find/register": {
       "post": {
-        "tags": [
-          "Pet"
-        ],
         "summary": "Endpoint de registro de um novo pet e registrar no mapa.",
         "description": "",
         "parameters": [
@@ -257,9 +236,6 @@
     },
     "/api/pet/locateByLatLng": {
       "post": {
-        "tags": [
-          "Pet"
-        ],
         "description": "",
         "responses": {
           "200": {
@@ -276,9 +252,6 @@
     },
     "/api/pet/find/get/{id}": {
       "get": {
-        "tags": [
-          "Pet"
-        ],
         "description": "",
         "parameters": [
           {
@@ -300,9 +273,6 @@
     },
     "/api/pet/myPets": {
       "get": {
-        "tags": [
-          "Pet"
-        ],
         "summary": "Endpoint para retornar os pets do usuário logado.",
         "description": "",
         "responses": {
@@ -317,9 +287,6 @@
     },
     "/api/pet/find/search": {
       "get": {
-        "tags": [
-          "Pet"
-        ],
         "summary": "Pesquisa por pets usando um único parâmetro.",
         "description": "",
         "parameters": [
@@ -341,9 +308,6 @@
     },
     "/api/pet/petFinder/list": {
       "get": {
-        "tags": [
-          "Pet"
-        ],
         "summary": "Retorna pets desaparecidos próximos ao usuário",
         "description": "",
         "parameters": [
@@ -385,9 +349,6 @@
     },
     "/api/commentary/create": {
       "post": {
-        "tags": [
-          "Commentary"
-        ],
         "summary": "Registrar novo comentário em um pet",
         "description": "",
         "parameters": [
@@ -425,9 +386,6 @@
     },
     "/api/commentary/list/{petId}": {
       "get": {
-        "tags": [
-          "Commentary"
-        ],
         "summary": "Listar comentários de um pet específico",
         "description": "",
         "parameters": [
@@ -450,9 +408,6 @@
     },
     "/api/commentary/edit": {
       "put": {
-        "tags": [
-          "Commentary"
-        ],
         "summary": "Editar texto de um comentário (somente o dono pode editar)",
         "description": "",
         "parameters": [
@@ -484,9 +439,6 @@
     },
     "/api/commentary/remove": {
       "delete": {
-        "tags": [
-          "Commentary"
-        ],
         "summary": "Remover comentário (apenas o dono do comentário pode remover)",
         "description": "",
         "parameters": [
@@ -515,9 +467,6 @@
     },
     "/api/commentary/replies/{commentId}": {
       "get": {
-        "tags": [
-          "Commentary"
-        ],
         "summary": "Listar todas as respostas recursivas de um comentário, incluindo o nome do usuário destinatário",
         "description": "",
         "parameters": [
@@ -540,9 +489,6 @@
     },
     "/api/commentary/count-replies/{commentId}": {
       "get": {
-        "tags": [
-          "Commentary"
-        ],
         "summary": "Contar o número total de respostas recursivas de um comentário",
         "description": "",
         "parameters": [
@@ -565,9 +511,6 @@
     },
     "/api/commentary/{id}": {
       "get": {
-        "tags": [
-          "Commentary"
-        ],
         "summary": "Buscar um comentário por ID (inclui respostas e pais)",
         "description": "",
         "parameters": [
@@ -590,9 +533,6 @@
     },
     "/api/notification/create": {
       "post": {
-        "tags": [
-          "Commentary"
-        ],
         "summary": "Criar nova notificação",
         "description": "",
         "responses": {
@@ -607,9 +547,6 @@
     },
     "/api/notification/mark-as-read/{notificationId}": {
       "put": {
-        "tags": [
-          "Commentary"
-        ],
         "summary": "Marcar notificação como lida",
         "description": "",
         "parameters": [
@@ -632,9 +569,6 @@
     },
     "/api/notification/mark-all-as-read": {
       "put": {
-        "tags": [
-          "Commentary"
-        ],
         "summary": "Marcar todas as notificações do usuário como lidas",
         "description": "",
         "responses": {
@@ -649,9 +583,6 @@
     },
     "/api/notification/unread-count": {
       "get": {
-        "tags": [
-          "Commentary"
-        ],
         "summary": "Contar notificações não lidas",
         "description": "",
         "responses": {
@@ -666,9 +597,6 @@
     },
     "/api/notification/list": {
       "get": {
-        "tags": [
-          "Commentary"
-        ],
         "summary": "Listar notificações do usuário autenticado com nome, foto e ID do pet relacionado",
         "description": "",
         "responses": {
@@ -683,9 +611,6 @@
     },
     "/api/message/send": {
       "post": {
-        "tags": [
-          "Commentary"
-        ],
         "summary": "Enviar nova mensagem",
         "description": "",
         "responses": {
@@ -700,9 +625,6 @@
     },
     "/api/message/between/{userId}": {
       "get": {
-        "tags": [
-          "Commentary"
-        ],
         "summary": "Buscar mensagens entre dois usuários",
         "description": "",
         "parameters": [
