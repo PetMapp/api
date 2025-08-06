@@ -680,6 +680,48 @@
           }
         }
       }
+    },
+    "/api/message/send": {
+      "post": {
+        "tags": [
+          "Commentary"
+        ],
+        "summary": "Enviar nova mensagem",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/api/message/between/{userId}": {
+      "get": {
+        "tags": [
+          "Commentary"
+        ],
+        "summary": "Buscar mensagens entre dois usuários",
+        "description": "",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
     }
   },
   "security": [

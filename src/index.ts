@@ -9,8 +9,9 @@ import generateSwagger from '../config/swagger.config';
 import { badRequestMiddleware, responseMiddleware } from './middleware/responseMiddleware';
 import cors from 'cors';
 import { https } from 'firebase-functions/v2';
-import './firebase'; // Importa e inicializa o Firebase antes de qualquer outra coisa.
+import './firebase';
 import { started } from './firebase';
+import MessageController from './controllers/MessageController';
 started();
 
 
@@ -42,6 +43,9 @@ appHandle.use('/notification', notificationController
   /*#swagger.tags = ["Commentary"]*/
 );
 
+appHandle.use('/message', MessageController
+  /*#swagger.tags = ["Commentary"]*/
+);
 
 app.use("/api", appHandle);
 if (process.env.NODE_ENV !== 'test') {

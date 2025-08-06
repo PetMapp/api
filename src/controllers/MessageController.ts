@@ -36,3 +36,6 @@ router.get("/between/:userId", authorize, async (req, res) => {
     return res.BadRequest({ data: null, errorMessage: "Erro ao buscar mensagens.", success: false });
   }
 });
+
+const MessageController = router;
+export default MessageController;
