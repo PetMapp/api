@@ -2,9 +2,13 @@ import express from "express";
 import authorize from "../middleware/authorize";
 import MessageService from "../services/MessageService";
 import CreateMessageDTO_Req from "../DTOs/request/CreateMessageDTO_Req";
+import { WebSocket } from "ws";
+import { clients } from '../index';
+import WebSocketNotifier from "../utils/webSocketNotifier";
 
 const router = express.Router();
 const messageService = new MessageService();
+const notifier = new WebSocketNotifier(clients);
 
 router.post("/send", authorize, async (req, res) => {
   /**#swagger.summary = "Enviar nova mensagem" */
@@ -85,8 +89,6 @@ router.delete("/delete/:id", authorize, async (req, res) => {
 });
 
 router.put("/read/all", authorize, async (req, res) => {
-  /**#swagger.summary = "Marcar todas as mensagens entre os usuários como lidas" */
-
   const { userA, userB, currentUserId } = req.body;
 
   if (!userA || !userB || !currentUserId) {
@@ -95,6 +97,8 @@ router.put("/read/all", authorize, async (req, res) => {
 
   try {
     await messageService.markAllAsReadBetweenUsers(userA, userB, currentUserId);
+
+    notifier.notifyMessagesRead(userA, userB, currentUserId);
 
     return res.status(200).json({ message: "Mensagens marcadas como lidas" });
   } catch (error) {

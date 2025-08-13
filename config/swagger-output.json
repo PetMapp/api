@@ -723,7 +723,6 @@
     },
     "/api/message/read/all": {
       "put": {
-        "summary": "Marcar todas as mensagens entre os usuários como lidas",
         "description": "",
         "parameters": [
           {
