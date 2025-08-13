@@ -723,6 +723,7 @@
     },
     "/api/message/read/all": {
       "put": {
+        "summary": "Marca todas mensagens de uma conversa como lida",
         "description": "",
         "parameters": [
           {
@@ -753,6 +754,46 @@
           },
           "500": {
             "description": "Internal Server Error"
+          }
+        }
+      }
+    },
+    "/api/message/unread/count": {
+      "get": {
+        "summary": "Conta as mensagens não lidas pelo usuário",
+        "description": "",
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/api/messageunread/count/users": {
+      "get": {
+        "summary": "Conta o número de mensagens não lidas entre dois usuários",
+        "description": "",
+        "parameters": [
+          {
+            "name": "userA",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "userB",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
           }
         }
       }

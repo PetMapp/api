@@ -89,6 +89,7 @@ router.delete("/delete/:id", authorize, async (req, res) => {
 });
 
 router.put("/read/all", authorize, async (req, res) => {
+  /**#swagger.summary = "Marca todas mensagens de uma conversa como lida" */
   const { userA, userB, currentUserId } = req.body;
 
   if (!userA || !userB || !currentUserId) {
@@ -104,6 +105,35 @@ router.put("/read/all", authorize, async (req, res) => {
   } catch (error) {
     console.error("Erro ao marcar mensagens como lidas:", error);
     return res.status(500).json({ error: "Erro interno no servidor" });
+  }
+});
+
+router.get("/unread/count", authorize, async (req, res) => {
+  /**#swagger.summary = "Conta as mensagens não lidas pelo usuário" */
+  try {
+    const count = await messageService.countUnreadMessages(req.user!.uid);
+    return res.Ok({ data: count, errorMessage: null, success: true });
+  } catch (error: any) {
+    console.error("Erro ao contar mensagens não lidas:", error.message);
+    return res.BadRequest({ data: null, errorMessage: "Erro ao contar mensagens não lidas.", success: false });
+  }
+});
+
+router.get("unread/count/users", authorize, async (req, res) => {
+  /**#swagger.summary = "Conta o número de mensagens não lidas entre dois usuários" */
+  try {
+    const { userA, userB } = req.query as { userA?: string; userB?: string };
+
+    if (!userA || !userB) {
+      return res.status(400).json({ error: "Parâmetros insuficientes" });
+    }
+
+    const count = await messageService.countUnreadMessagesBetweenUsers(userA, userB);
+    return res.Ok({ data: count, errorMessage: null, success: true });
+
+  } catch (error: any) {
+    console.error("Erro ao contar mensagens não lidas entre usuários:", error.message);
+    return res.BadRequest({ data: null, errorMessage: "Erro ao contar mensagens não lidas entre usuários.", success: false });
   }
 });
 

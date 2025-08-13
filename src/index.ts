@@ -74,6 +74,12 @@ wss.on('connection', (ws, req) => {
                 event: 'messagesRead',
                 data: { userA: userId, userB: viewingOtherUserId, readBy: userId }
               }));
+              otherSocket.send(JSON.stringify({ event: 'updateUserList' }));
+            }
+
+            const thisSocket = clients.get(userId);
+            if (thisSocket && thisSocket.readyState === WebSocket.OPEN) {
+              thisSocket.send(JSON.stringify({ event: 'updateUserList' }));
             }
           } catch (err) {
             console.error('Erro ao marcar mensagens como lidas a partir do evento viewing', err);
@@ -106,10 +112,12 @@ wss.on('connection', (ws, req) => {
           const recipientSocket = clients.get(data.to);
           if (recipientSocket && recipientSocket.readyState === WebSocket.OPEN) {
             recipientSocket.send(JSON.stringify(persistedMessage));
+            recipientSocket.send(JSON.stringify({ event: 'updateUserList' }));
           }
 
           if (ws.readyState === WebSocket.OPEN) {
             ws.send(JSON.stringify(persistedMessage));
+            ws.send(JSON.stringify({ event: 'updateUserList' }));
           }
 
         } catch (errSave) {

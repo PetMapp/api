@@ -28,6 +28,20 @@ export default class MessageService {
     ).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
   }
 
+  async countUnreadMessages(userId: string): Promise<number> {
+    const messages = await this.firestore.list<message>("messages");
+
+    return messages.filter(
+      m => m.receiverId === userId && !m.read
+    ).length;
+  }
+
+  async countUnreadMessagesBetweenUsers(userA: string, userB: string): Promise<number> {
+    const messages = await this.getMessagesBetweenUsers(userA, userB);
+
+    return messages.filter(m => m.receiverId === userA && !m.read).length;
+  }
+
   async markAllAsReadBetweenUsers(userA: string, userB: string, currentUserId: string): Promise<void> {
     const messages = await this.getMessagesBetweenUsers(userA, userB);
 
