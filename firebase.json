@@ -13,7 +13,43 @@
       ],
       "predeploy": [
         "npm run build"
-      ]
+      ],
+      "firestore": {
+        "indexes": [
+          {
+            "collectionGroup": "messages",
+            "queryScope": "COLLECTION",
+            "fields": [
+              {
+                "fieldPath": "conversationKey",
+                "order": "ASCENDING"
+              },
+              {
+                "fieldPath": "createdAt",
+                "order": "ASCENDING"
+              }
+            ]
+          },
+          {
+            "collectionGroup": "messages",
+            "queryScope": "COLLECTION",
+            "fields": [
+              {
+                "fieldPath": "conversationKey",
+                "order": "ASCENDING"
+              },
+              {
+                "fieldPath": "receiverId",
+                "order": "ASCENDING"
+              },
+              {
+                "fieldPath": "read",
+                "order": "ASCENDING"
+              }
+            ]
+          }
+        ]
+      }
     }
   ]
 }

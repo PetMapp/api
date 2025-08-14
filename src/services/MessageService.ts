@@ -3,6 +3,7 @@ import FirebaseService from "./FirebaseService";
 import message from "../models/entities/message";
 import CreateMessageDTO_Req from "../DTOs/request/CreateMessageDTO_Req";
 import * as admin from "firebase-admin";
+import { makeConversationKey } from "../utils/conversationKey";
 
 export default class MessageService {
   private firestore = new FirebaseService();
@@ -12,52 +13,76 @@ export default class MessageService {
       ...data,
       read: false,
       createdAt: new Date().toISOString(),
+      conversationKey: makeConversationKey(data.userId, data.receiverId),
+      participants: [data.userId, data.receiverId]
     };
 
-    const result = await this.firestore.register<message>("messages", newMessage);
+    const result = await admin.firestore().collection("messages").add(newMessage);
     return result.id;
   }
 
   async getMessagesBetweenUsers(userA: string, userB: string): Promise<message[]> {
-    const all = await this.firestore.list<message>("messages");
+    const key = makeConversationKey(userA, userB);
+    const col = admin.firestore().collection("messages");
 
-    return all.filter(
-      m =>
-        (m.userId === userA && m.receiverId === userB) ||
-        (m.userId === userB && m.receiverId === userA)
-    ).sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
+    let snap = await col.where("conversationKey", "==", key).get();
+    let messages = snap.docs.map(d => ({ id: d.id, ...(d.data() as any) } as message));
+
+    if (messages.length === 0) {
+      const [aToB, bToA] = await Promise.all([
+        col.where("userId", "==", userA).where("receiverId", "==", userB).get(),
+        col.where("userId", "==", userB).where("receiverId", "==", userA).get(),
+      ]);
+      messages = [...aToB.docs, ...bToA.docs].map(d => ({ id: d.id, ...(d.data() as any) } as message));
+    }
+
+    return messages.sort(
+      (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+    );
   }
 
   async countUnreadMessages(userId: string): Promise<number> {
-    const messages = await this.firestore.list<message>("messages");
+    const snap = await admin.firestore()
+      .collection("messages")
+      .where("receiverId", "==", userId)
+      .where("read", "==", false)
+      .count()
+      .get();
 
-    return messages.filter(
-      m => m.receiverId === userId && !m.read
-    ).length;
+    return snap.data().count;
   }
 
   async countUnreadMessagesBetweenUsers(userA: string, userB: string): Promise<number> {
-    const messages = await this.getMessagesBetweenUsers(userA, userB);
+    const key = makeConversationKey(userA, userB);
+    const agg = await admin.firestore()
+      .collection("messages")
+      .where("conversationKey", "==", key)
+      .where("receiverId", "==", userA)
+      .where("read", "==", false)
+      .count()
+      .get();
 
-    return messages.filter(m => m.receiverId === userA && !m.read).length;
+    return agg.data().count;
   }
 
   async markAllAsReadBetweenUsers(userA: string, userB: string, currentUserId: string): Promise<void> {
-    const messages = await this.getMessagesBetweenUsers(userA, userB);
+    const key = makeConversationKey(userA, userB);
 
-    const unreadMessages = messages.filter(
-      m => m.receiverId === currentUserId && !m.read
-    );
+    const snap = await admin.firestore()
+      .collection("messages")
+      .where("conversationKey", "==", key)
+      .where("receiverId", "==", currentUserId)
+      .where("read", "==", false)
+      .get();
 
-    const updatePromises = unreadMessages.map(m =>
-      this.firestore.update<message>("messages", {
-        ...m,
-        id: m.id,
-        read: true,
-      })
-    );
+    if (snap.empty) return;
 
-    await Promise.all(updatePromises);
+    const batch = admin.firestore().batch();
+    snap.docs.forEach(doc => {
+      batch.update(doc.ref, { read: true });
+    });
+
+    await batch.commit();
   }
 
   async markAsRead(messageId: string, currentUserId: string): Promise<boolean> {
@@ -94,55 +119,46 @@ export default class MessageService {
     return true;
   }
 
-  async getUsersWithMessages(userId: string): Promise<Array<{
-    id: string;
-    displayName: string;
-    photo: string;
-    lastMessage: message | null;
-  }>> {
-    const messages = await this.firestore.list<message>("messages");
+  async getUsersWithMessages(userId: string) {
+    const snap = await admin.firestore()
+      .collection("messages")
+      .where("participants", "array-contains", userId)
+      .orderBy("createdAt", "desc")
+      .get();
 
-    const userIds = new Set<string>();
-    for (const msg of messages) {
-      if (msg.userId === userId) userIds.add(msg.receiverId);
-      else if (msg.receiverId === userId) userIds.add(msg.userId);
-    }
-    const otherUsers = Array.from(userIds);
+    const conversationsMap: Record<string, message> = {};
 
-    const result = [];
+    snap.docs.forEach(doc => {
+      const msg = doc.data() as message;
+      const otherUserId = msg.userId === userId ? msg.receiverId : msg.userId;
 
-    // Função para buscar usuário no Firebase Authentication pelo Admin SDK
-    async function getUserData(uid: string) {
-      try {
-        const userRecord = await admin.auth().getUser(uid);
-        return {
-          displayName: userRecord.displayName || "User",
-          photo: userRecord.photoURL || "",
-        };
-      } catch {
-        return { displayName: "User", photo: "" };
+      if (!conversationsMap[otherUserId]) {
+        conversationsMap[otherUserId] = { ...msg };
       }
-    }
+    });
 
-    for (const id of otherUsers) {
-      const user = await getUserData(id);
+    const otherUserIds = Object.keys(conversationsMap);
 
-      const msgs = messages.filter(
-        m =>
-          (m.userId === userId && m.receiverId === id) ||
-          (m.userId === id && m.receiverId === userId)
-      );
-      msgs.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-
-      const last = msgs[0] ?? null;
-
-      result.push({
-        id,
-        displayName: user.displayName,
-        photo: user.photo,
-        lastMessage: last,
-      });
-    }
+    const result = await Promise.all(
+      otherUserIds.map(async id => {
+        try {
+          const userRecord = await admin.auth().getUser(id);
+          return {
+            id,
+            displayName: userRecord.displayName || "User",
+            photo: userRecord.photoURL || "",
+            lastMessage: conversationsMap[id]
+          };
+        } catch {
+          return {
+            id,
+            displayName: "User",
+            photo: "",
+            lastMessage: conversationsMap[id]
+          };
+        }
+      })
+    );
 
     return result;
   }
