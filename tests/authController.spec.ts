@@ -1,5 +1,5 @@
 import request from "supertest";
-import app from "../src"; // Importa o app principal, como você fez nos outros testes
+import app from "../src";
 import FirebaseService from "../src/services/FirebaseService";
 import { admin } from "../src/firebase";
 import user from "../src/models/entities/user";

@@ -1,7 +1,7 @@
 import app from "../src";
 import request from "supertest";
 import FirebaseService from "../src/services/FirebaseService";
-import NotificationService from "../src/services/notificationService";
+import NotificationService from "../src/services/NotificationService";
 import { DecodedIdToken } from "firebase-admin/auth";
 import { admin } from "../src/firebase";
 

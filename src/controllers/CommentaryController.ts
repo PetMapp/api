@@ -7,7 +7,7 @@ import CommentaryDeleteDTO_Req from "../DTOs/request/CommentaryDeleteDTO_Req";
 import CommentaryListDTO_Res from "../DTOs/response/CommentaryListDTO_Res";
 import CommentaryEditDTO_Req from "../DTOs/request/CommentaryEditDTO_Req";
 import { admin } from "../firebase";
-import NotificationService from "../services/notificationService";
+import NotificationService from "../services/NotificationService";
 import CreateNotificationDTO_Req from "../DTOs/request/CreateNotificationDTO_Req";
 
 const router = express.Router();
