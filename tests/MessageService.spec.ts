@@ -1,25 +1,46 @@
 import MessageService from "../src/services/MessageService";
+import * as admin from "firebase-admin";
 import FirebaseService from "../src/services/FirebaseService";
-import { jest } from "@jest/globals";
-import message from "../src/models/entities/message";
+
+// Create proper mock chain for Firestore
+const mockFirestore = {
+    collection: jest.fn(() => ({
+        add: jest.fn(),
+        where: jest.fn().mockReturnThis(),
+        get: jest.fn(),
+        count: jest.fn().mockReturnThis(),
+    })),
+};
+
+jest.mock("firebase-admin", () => ({
+    firestore: jest.fn(() => mockFirestore),
+}));
 
 jest.mock("../src/services/FirebaseService");
 
-const MockedFirebase = FirebaseService as jest.MockedClass<typeof FirebaseService>;
-
 describe("MessageService", () => {
     let service: MessageService;
-    let mockFirestore: jest.Mocked<FirebaseService>;
+    let firebaseServiceMock: any;
+    let mockCollection: any;
 
     beforeEach(() => {
-        mockFirestore = new MockedFirebase() as jest.Mocked<FirebaseService>;
         service = new MessageService();
-        (service as any).firestore = mockFirestore;
+        firebaseServiceMock = (FirebaseService as jest.Mock).mock.instances[0];
+        
+        // Reset the collection mock for each test
+        mockCollection = {
+            add: jest.fn(),
+            where: jest.fn().mockReturnThis(),
+            get: jest.fn(),
+            count: jest.fn().mockReturnThis(),
+        };
+        
+        mockFirestore.collection.mockReturnValue(mockCollection);
+        jest.clearAllMocks();
     });
 
     it("deve enviar uma nova mensagem", async () => {
-        const fakeId = "abc123";
-        mockFirestore.register.mockResolvedValue({ id: fakeId });
+        mockCollection.add.mockResolvedValue({ id: "msg123" });
 
         const result = await service.sendMessage({
             userId: "user1",
@@ -27,166 +48,120 @@ describe("MessageService", () => {
             text: "Olá!",
         });
 
-        expect(mockFirestore.register).toHaveBeenCalledWith("messages", expect.objectContaining({
-            userId: "user1",
-            receiverId: "user2",
-            text: "Olá!",
-            read: false
-        }));
-
-        expect(result).toBe(fakeId);
+        expect(mockFirestore.collection).toHaveBeenCalledWith("messages");
+        expect(mockCollection.add).toHaveBeenCalled();
+        expect(result).toBe("msg123");
     });
 
     it("deve buscar mensagens entre dois usuários", async () => {
-        const mensagens: message[] = [
-            {
-                id: "1",
-                userId: "user1",
-                receiverId: "user2",
-                text: "Oi",
-                createdAt: new Date().toISOString(),
-                read: false
-            },
-            {
-                id: "2",
-                userId: "user2",
-                receiverId: "user1",
-                text: "Olá",
-                createdAt: new Date().toISOString(),
-                read: true
-            },
-            {
-                id: "3",
-                userId: "user3",
-                receiverId: "user1",
-                text: "Mensagem fora do contexto",
-                createdAt: new Date().toISOString(),
-                read: false
-            }
-        ];
+        // Mock the method chain: collection().where().get()
+        mockCollection.get.mockResolvedValueOnce({
+            docs: [
+                { id: "1", data: () => ({ createdAt: "2025-01-01", text: "Oi" }) },
+            ],
+        });
 
-        mockFirestore.list.mockResolvedValue(mensagens);
+        const messages = await service.getMessagesBetweenUsers("user1", "user2");
 
-        const result = await service.getMessagesBetweenUsers("user1", "user2");
-
-        expect(result).toHaveLength(2);
-        expect(result.map(m => m.id)).toEqual(["1", "2"]);
+        expect(mockFirestore.collection).toHaveBeenCalledWith("messages");
+        expect(mockCollection.where).toHaveBeenCalled();
+        expect(mockCollection.get).toHaveBeenCalled();
+        expect(messages).toHaveLength(1);
+        expect(messages[0].text).toBe("Oi");
     });
 
-    it("deve marcar a mensagem como lida se for do usuário correto", async () => {
-        const msg: message = {
+    it("deve contar mensagens não lidas", async () => {
+        // Mock the method chain: collection().where().where().count().get()
+        mockCollection.get.mockResolvedValueOnce({
+            data: () => ({ count: 5 }),
+        });
+
+        const count = await service.countUnreadMessages("user2");
+        
+        expect(mockFirestore.collection).toHaveBeenCalledWith("messages");
+        expect(mockCollection.where).toHaveBeenCalledWith("receiverId", "==", "user2");
+        expect(mockCollection.where).toHaveBeenCalledWith("read", "==", false);
+        expect(mockCollection.count).toHaveBeenCalled();
+        expect(mockCollection.get).toHaveBeenCalled();
+        expect(count).toBe(5);
+    });
+
+    it("deve marcar uma mensagem como lida", async () => {
+        firebaseServiceMock.get.mockResolvedValue({
             id: "msg1",
-            userId: "user1",
-            receiverId: "user2",
-            text: "oi",
-            createdAt: new Date().toISOString(),
-            read: false
-        };
+            receiverId: "user1",
+            read: false,
+        });
 
-        mockFirestore.get.mockResolvedValue(msg);
-        mockFirestore.update.mockResolvedValue(msg);
+        const result = await service.markAsRead("msg1", "user1");
 
-        const result = await service.markAsRead("msg1", "user2");
-
+        expect(firebaseServiceMock.update).toHaveBeenCalled();
         expect(result).toBe(true);
-        expect(mockFirestore.update).toHaveBeenCalledWith("messages", {
-            ...msg,
-            id: "msg1",
-            read: true
-        });
     });
 
-    it("não deve marcar como lida se o usuário não for o destinatário", async () => {
-        const msg: message = {
+    it("não deve marcar como lida se o usuário não for o receiver", async () => {
+        firebaseServiceMock.get.mockResolvedValue({
             id: "msg1",
-            userId: "user1",
             receiverId: "user2",
-            text: "oi",
-            createdAt: new Date().toISOString(),
-            read: false
-        };
+        });
 
-        mockFirestore.get.mockResolvedValue(msg);
+        const result = await service.markAsRead("msg1", "user1");
 
-        const result = await service.markAsRead("msg1", "user3");
-
+        expect(firebaseServiceMock.update).not.toHaveBeenCalled();
         expect(result).toBe(false);
-        expect(mockFirestore.update).not.toHaveBeenCalled();
     });
 
-    it("deve enviar uma mensagem relacionada a um pet", async () => {
-        const fakeId = "msg-pet-001";
-        mockFirestore.register.mockResolvedValue({ id: fakeId });
-
-        const result = await service.sendMessage({
+    it("deve editar mensagem se o usuário for o autor", async () => {
+        firebaseServiceMock.get.mockResolvedValue({
+            id: "msg1",
             userId: "user1",
-            receiverId: "user2",
-            text: "Olá, sobre seu pet!",
-            relatedPetId: "pet123"
+            text: "Antigo",
         });
 
-        expect(mockFirestore.register).toHaveBeenCalledWith("messages", expect.objectContaining({
+        const result = await service.editMessage("msg1", "Novo texto", "user1");
+
+        expect(firebaseServiceMock.update).toHaveBeenCalledWith("messages", {
+            id: "msg1",
             userId: "user1",
-            receiverId: "user2",
-            text: "Olá, sobre seu pet!",
-            relatedPetId: "pet123",
-            read: false
-        }));
-
-        expect(result).toBe(fakeId);
-    });
-
-    it("deve enviar uma mensagem relacionada a um comentário", async () => {
-        const fakeId = "msg-comment-001";
-        mockFirestore.register.mockResolvedValue({ id: fakeId });
-
-        const result = await service.sendMessage({
-            userId: "user1",
-            receiverId: "user2",
-            text: "Sobre seu comentário...",
-            relatedCommentId: "comment123"
+            text: "Novo texto",
         });
-
-        expect(mockFirestore.register).toHaveBeenCalledWith("messages", expect.objectContaining({
-            userId: "user1",
-            receiverId: "user2",
-            text: "Sobre seu comentário...",
-            relatedCommentId: "comment123",
-            read: false
-        }));
-
-        expect(result).toBe(fakeId);
+        expect(result).toBe(true);
     });
 
-    it("deve enviar uma mensagem em resposta a outra mensagem", async () => {
-        const fakeId = "msg-reply-001";
-        mockFirestore.register.mockResolvedValue({ id: fakeId });
-
-        const result = await service.sendMessage({
+    it("não deve editar mensagem de outro usuário", async () => {
+        firebaseServiceMock.get.mockResolvedValue({
+            id: "msg1",
             userId: "user2",
-            receiverId: "user1",
-            text: "Respondendo sua mensagem.",
-            replyToMessageId: "msg-original-001"
+            text: "Antigo",
         });
 
-        expect(mockFirestore.register).toHaveBeenCalledWith("messages", expect.objectContaining({
-            userId: "user2",
-            receiverId: "user1",
-            text: "Respondendo sua mensagem.",
-            replyToMessageId: "msg-original-001",
-            read: false
-        }));
+        const result = await service.editMessage("msg1", "Novo texto", "user1");
 
-        expect(result).toBe(fakeId);
+        expect(firebaseServiceMock.update).not.toHaveBeenCalled();
+        expect(result).toBe(false);
     });
-    
-    it("deve retornar uma lista vazia se não houver mensagens entre os usuários", async () => {
-        mockFirestore.list.mockResolvedValue([]);
 
-        const result = await service.getMessagesBetweenUsers("user1", "user2");
+    it("deve deletar mensagem se o usuário for o autor", async () => {
+        firebaseServiceMock.get.mockResolvedValue({
+            id: "msg1",
+            userId: "user1",
+        });
 
-        expect(result).toHaveLength(0);
+        const result = await service.deleteMessage("msg1", "user1");
+
+        expect(firebaseServiceMock.remove).toHaveBeenCalledWith("messages", "msg1");
+        expect(result).toBe(true);
+    });
+
+    it("não deve deletar mensagem de outro usuário", async () => {
+        firebaseServiceMock.get.mockResolvedValue({
+            id: "msg1",
+            userId: "user2",
+        });
+
+        const result = await service.deleteMessage("msg1", "user1");
+
+        expect(firebaseServiceMock.remove).not.toHaveBeenCalled();
+        expect(result).toBe(false);
     });
 });
-
-

@@ -1,4 +1,3 @@
-// services/MessageService.ts
 import FirebaseService from "./FirebaseService";
 import message from "../models/entities/message";
 import CreateMessageDTO_Req from "../DTOs/request/CreateMessageDTO_Req";
