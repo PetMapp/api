@@ -2,7 +2,6 @@ import MessageService from "../src/services/MessageService";
 import * as admin from "firebase-admin";
 import FirebaseService from "../src/services/FirebaseService";
 
-// Create proper mock chain for Firestore
 const mockFirestore = {
     collection: jest.fn(() => ({
         add: jest.fn(),
@@ -27,7 +26,6 @@ describe("MessageService", () => {
         service = new MessageService();
         firebaseServiceMock = (FirebaseService as jest.Mock).mock.instances[0];
         
-        // Reset the collection mock for each test
         mockCollection = {
             add: jest.fn(),
             where: jest.fn().mockReturnThis(),
@@ -54,7 +52,6 @@ describe("MessageService", () => {
     });
 
     it("deve buscar mensagens entre dois usuários", async () => {
-        // Mock the method chain: collection().where().get()
         mockCollection.get.mockResolvedValueOnce({
             docs: [
                 { id: "1", data: () => ({ createdAt: "2025-01-01", text: "Oi" }) },
@@ -71,7 +68,6 @@ describe("MessageService", () => {
     });
 
     it("deve contar mensagens não lidas", async () => {
-        // Mock the method chain: collection().where().where().count().get()
         mockCollection.get.mockResolvedValueOnce({
             data: () => ({ count: 5 }),
         });
