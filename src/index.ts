@@ -15,6 +15,7 @@ import { badRequestMiddleware, responseMiddleware } from './middleware/responseM
 import cors from 'cors';
 import './firebase';
 import { started } from './firebase';
+import RequestController from './controllers/RequestController';
 
 const app = express();
 const server = http.createServer(app);
@@ -35,6 +36,7 @@ appHandle.use('/pet', PetController);
 appHandle.use('/commentary', CommentaryController);
 appHandle.use('/notification', notificationController);
 appHandle.use('/message', MessageController);
+appHandle.use('/request', RequestController);
 
 app.use('/api', appHandle);
 
