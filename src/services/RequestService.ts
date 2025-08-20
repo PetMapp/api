@@ -16,6 +16,10 @@ export default class RequestService {
         return await this.firestore.register<request>("requests", newRequest);
     }
 
+    async getRequestById(requestId: string): Promise<request | null> {
+        return await this.firestore.get<request>("requests", requestId);
+    }
+
     async getRequestsByUser(userId: string): Promise<request[]> {
         const snap = await admin
             .firestore()
