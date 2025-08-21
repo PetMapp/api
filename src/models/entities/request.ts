@@ -8,4 +8,16 @@ export default interface request extends fbEntity {
     status: "pending" | "accepted" | "rejected",
     createdAt: string,
     imageUrl: string | null,
+    fromUser: {
+        displayName: string,
+        photoURL: string | null
+    },
+    petOwner: {
+        displayName: string,
+        photoURL: string | null
+    },
+    pet: {
+        apelido?: string,
+        petImage?: string | null
+    }
 }

@@ -842,7 +842,7 @@
     },
     "/api/request/pet/{userPetId}": {
       "get": {
-        "summary": "Buscar requisições recebidas para um pet com imagens de prova",
+        "summary": "Buscar requisições recebidas para os pets de um usuário",
         "description": "",
         "parameters": [
           {

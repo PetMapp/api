@@ -95,7 +95,7 @@ router.get("/user/:userId", authorize, async (req, res) => {
 });
 
 router.get("/pet/:userPetId", authorize, async (req, res) => {
-  /**#swagger.summary = "Buscar requisições recebidas para um pet com imagens de prova" */
+  /**#swagger.summary = "Buscar requisições recebidas para os pets de um usuário" */
   try {
     const { userPetId } = req.params;
     const requests = await requestService.getRequestsForUserPet(userPetId);
