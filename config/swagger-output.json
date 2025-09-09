@@ -922,6 +922,26 @@
             "description": "Not Found"
           }
         }
+      },
+      "get": {
+        "summary": "Obter o status atual de uma requisição",
+        "description": "",
+        "parameters": [
+          {
+            "name": "requestId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
       }
     },
     "/api/request/user/{userId}/count": {
@@ -938,6 +958,34 @@
           {
             "name": "status",
             "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          },
+          "400": {
+            "description": "Bad Request"
+          }
+        }
+      }
+    },
+    "/api/request/user/{userId}/{petId}": {
+      "get": {
+        "summary": "Retorna a última requisição do usuário ao pet, caso exista",
+        "description": "",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "petId",
+            "in": "path",
+            "required": true,
             "type": "string"
           }
         ],

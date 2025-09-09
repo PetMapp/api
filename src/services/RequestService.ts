@@ -209,4 +209,55 @@ export default class RequestService {
 
         return snap.data().count;
     }
+
+    async hasUserRequestedPet(userId: string, petId: string): Promise<boolean> {
+        const snap = await admin
+            .firestore()
+            .collection("requests")
+            .where("userId", "==", userId)
+            .where("petId", "==", petId)
+            .get();
+        return !snap.empty;
+    }
+
+    async getUserRequestForPet(
+        userId: string,
+        petId: string
+    ): Promise<{ exists: boolean; status?: "pending" | "accepted" | "rejected" }> {
+        const snap = await admin
+            .firestore()
+            .collection("requests")
+            .where("userId", "==", userId)
+            .where("petId", "==", petId)
+            .orderBy("createdAt", "desc")
+            .limit(1)
+            .get();
+
+        if (snap.empty) {
+            return { exists: false };
+        }
+
+        const req = snap.docs[0].data() as request;
+        return {
+            exists: true,
+            status: req.status ?? "pending",
+        };
+    }
+
+    async getRequestStatus(requestId: string): Promise<"pending" | "accepted" | "rejected" | null> {
+        const request = await this.firestore.get<request>("requests", requestId);
+        return request ? request.status || "pending" : null;
+    }
+
+    async checkIfUserRequestWasAccepted(userId: string, petId: string): Promise<boolean> {
+        const snap = await admin
+            .firestore()
+            .collection("requests")
+            .where("userId", "==", userId)
+            .where("petId", "==", petId)
+            .where("status", "==", "accepted")
+            .get();
+
+        return !snap.empty;
+    }
 }

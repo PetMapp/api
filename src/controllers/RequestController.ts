@@ -16,7 +16,7 @@ router.post("/", authorize, upload.single("img"), async (req, res) => {
   try {
     const data = req.body as Omit<request, "id" | "createdAt">;
     const file = req.file;
-    
+
     if (!file) {
       return res.status(400).json({
         data: null,
@@ -34,7 +34,7 @@ router.post("/", authorize, upload.single("img"), async (req, res) => {
     const bucket = admin.storage().bucket();
     const fileName = `requests/${newRequest.id}/proof`;
     const firebaseFile = bucket.file(fileName);
-    
+
     await firebaseFile.save(file.buffer, {
       metadata: { contentType: file.mimetype }
     });
@@ -60,7 +60,7 @@ router.get("/user/:userId", authorize, async (req, res) => {
   try {
     const { userId } = req.params;
     const requests = await requestService.getRequestsByUser(userId);
-    
+
     const requestsWithImages = await Promise.all(
       requests.map(async (request) => {
         try {
@@ -71,7 +71,7 @@ router.get("/user/:userId", authorize, async (req, res) => {
             action: "read",
             version: "v4"
           });
-          
+
           return { ...request, proofImageUrl: imageUrl };
         } catch (error) {
           return { ...request, proofImageUrl: null };
@@ -79,17 +79,17 @@ router.get("/user/:userId", authorize, async (req, res) => {
       })
     );
 
-    return res.Ok({ 
-      data: requestsWithImages, 
-      errorMessage: null, 
-      success: true 
+    return res.Ok({
+      data: requestsWithImages,
+      errorMessage: null,
+      success: true
     });
   } catch (error: any) {
     console.error("Erro ao buscar requisições:", error.message);
-    return res.BadRequest({ 
-      data: null, 
-      errorMessage: "Erro ao buscar requisições", 
-      success: false 
+    return res.BadRequest({
+      data: null,
+      errorMessage: "Erro ao buscar requisições",
+      success: false
     });
   }
 });
@@ -99,7 +99,7 @@ router.get("/pet/:userPetId", authorize, async (req, res) => {
   try {
     const { userPetId } = req.params;
     const requests = await requestService.getRequestsForUserPet(userPetId);
-    
+
     const requestsWithImages = await Promise.all(
       requests.map(async (request) => {
         try {
@@ -110,7 +110,7 @@ router.get("/pet/:userPetId", authorize, async (req, res) => {
             action: "read",
             version: "v4"
           });
-          
+
           return { ...request, proofImageUrl: imageUrl };
         } catch (error) {
           return { ...request, proofImageUrl: null };
@@ -118,17 +118,17 @@ router.get("/pet/:userPetId", authorize, async (req, res) => {
       })
     );
 
-    return res.Ok({ 
-      data: requestsWithImages, 
-      errorMessage: null, 
-      success: true 
+    return res.Ok({
+      data: requestsWithImages,
+      errorMessage: null,
+      success: true
     });
   } catch (error: any) {
     console.error("Erro ao buscar requisições do pet:", error.message);
-    return res.BadRequest({ 
-      data: null, 
-      errorMessage: "Erro ao buscar requisições do pet", 
-      success: false 
+    return res.BadRequest({
+      data: null,
+      errorMessage: "Erro ao buscar requisições do pet",
+      success: false
     });
   }
 });
@@ -138,7 +138,7 @@ router.get("/:requestId/details", authorize, async (req, res) => {
   try {
     const { requestId } = req.params;
     const request = await requestService.getRequestById(requestId);
-    
+
     if (!request) {
       return res.status(404).json({
         data: null,
@@ -155,7 +155,7 @@ router.get("/:requestId/details", authorize, async (req, res) => {
         action: "read",
         version: "v4"
       });
-      
+
       return res.Ok({
         data: { ...request, proofImageUrl: imageUrl },
         errorMessage: null,
@@ -186,23 +186,23 @@ router.put("/:requestId/status", authorize, async (req, res) => {
 
     const updated = await requestService.updateRequestStatus(requestId, status);
     if (!updated)
-      return res.status(404).json({ 
-        data: null, 
-        errorMessage: "Requisição não encontrada", 
-        success: false 
+      return res.status(404).json({
+        data: null,
+        errorMessage: "Requisição não encontrada",
+        success: false
       });
 
-    return res.Ok({ 
-      data: updated, 
-      errorMessage: null, 
-      success: true 
+    return res.Ok({
+      data: updated,
+      errorMessage: null,
+      success: true
     });
   } catch (error: any) {
     console.error("Erro ao atualizar requisição:", error.message);
-    return res.BadRequest({ 
-      data: null, 
-      errorMessage: "Erro ao atualizar requisição", 
-      success: false 
+    return res.BadRequest({
+      data: null,
+      errorMessage: "Erro ao atualizar requisição",
+      success: false
     });
   }
 });
@@ -215,17 +215,64 @@ router.get("/user/:userId/count", authorize, async (req, res) => {
 
     const count = await requestService.countRequestsByStatus(userId, status);
 
-    return res.Ok({ 
-      data: count, 
-      errorMessage: null, 
-      success: true 
+    return res.Ok({
+      data: count,
+      errorMessage: null,
+      success: true
     });
   } catch (error: any) {
     console.error("Erro ao contar requisições:", error.message);
-    return res.BadRequest({ 
-      data: null, 
-      errorMessage: "Erro ao contar requisições", 
-      success: false 
+    return res.BadRequest({
+      data: null,
+      errorMessage: "Erro ao contar requisições",
+      success: false
+    });
+  }
+});
+
+router.get("/user/:userId/:petId", authorize, async (req, res) => {
+  /**#swagger.summary = "Retorna a última requisição do usuário ao pet, caso exista" */
+  try {
+    const { userId, petId } = req.params;
+    const result = await requestService.getUserRequestForPet(userId, petId);
+
+    return res.Ok({
+      data: {
+        exists: result.exists,
+        status: result.status ?? null
+      },
+      errorMessage: null,
+      success: true
+    });
+  } catch (error: any) {
+    console.error("Erro ao verificar requisição aceita:", error.message);
+    return res.BadRequest({
+      data: null,
+      errorMessage: "Erro ao verificar requisição aceita",
+      success: false
+    });
+  }
+});
+
+router.get("/:requestId/status", authorize, async (req, res) => {
+  /**#swagger.summary = "Obter o status atual de uma requisição" */
+  try {
+    const { requestId } = req.params;
+
+    const status = await requestService.getRequestStatus(requestId);
+
+    return res.Ok({
+      data: status,
+      errorMessage: null,
+      success: true
+    });
+
+  } catch (error: any) {
+    console.error("Erro ao obter status da requisição:", error.message);
+    return res.BadRequest({
+      data: null,
+      errorMessage: "Erro ao obter status da requisição",
+      success: false
     });
   }
 });
